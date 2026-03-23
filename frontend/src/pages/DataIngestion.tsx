@@ -8,6 +8,17 @@ export default function DataIngestion() {
   const [recebimento, setRecebimento] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [aiHistory, setAiHistory] = useState<any[]>([]);
+
+  const fetchHistory = async () => {
+    const { data } = await supabase
+      .from('lancamentos')
+      .select('*, unidades(nome)')
+      .eq('origem', 'pdf_import')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (data) setAiHistory(data);
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,6 +58,7 @@ export default function DataIngestion() {
         if (data.length > 0) setSelectedUnidade(data[0].id);
       }
     });
+    fetchHistory();
   }, []);
 
   async function handleManualSubmit(e: React.FormEvent) {
@@ -151,14 +163,24 @@ export default function DataIngestion() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant">
-                  <tr className="hover:bg-surface-bright transition-colors group">
-                    <td className="px-6 py-4 text-sm font-medium">12/10/2023</td>
-                    <td className="px-6 py-4 text-sm font-mono text-primary">ILH-CENTRO-01</td>
-                    <td className="px-6 py-4 text-sm font-bold text-right">R$ 14.250,00</td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary/10 text-tertiary uppercase">Validado</span>
-                    </td>
-                  </tr>
+                  {aiHistory.length > 0 ? (
+                    aiHistory.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-surface-bright transition-colors group">
+                        <td className="px-6 py-4 text-sm font-medium">{new Date(item.data).toLocaleDateString('pt-BR')}</td>
+                        <td className="px-6 py-4 text-sm font-mono text-primary">{item.unidades?.nome || 'Desconhecida'}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-right">R$ {item.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary/10 text-tertiary uppercase">Validado</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-sm text-on-surface-variant font-medium">
+                        Nenhuma extração IA encontrada no banco de dados.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

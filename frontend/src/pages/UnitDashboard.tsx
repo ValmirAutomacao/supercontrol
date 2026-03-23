@@ -145,19 +145,8 @@ export default function UnitDashboard() {
             Sub-unidades
           </h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-surface-container-high rounded-lg border border-outline-variant/50">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <span className="text-sm font-bold">Sub-Unidade A</span>
-              </div>
-              <span className="text-xs text-on-surface-variant font-mono">ID: 001</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-surface-container-high rounded-lg border border-outline-variant/50">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-tertiary"></div>
-                <span className="text-sm font-bold">Sub-Unidade B</span>
-              </div>
-              <span className="text-xs text-on-surface-variant font-mono">ID: 002</span>
+            <div className="text-sm text-center py-6 text-on-surface-variant italic">
+              Nenhuma sub-unidade cadastrada para este pólo.
             </div>
           </div>
         </div>
@@ -184,20 +173,9 @@ export default function UnitDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/30">
-              <tr className="hover:bg-surface-container-highest transition-colors">
-                <td className="px-6 py-4 font-mono text-sm text-primary">#TX-99210</td>
-                <td className="px-6 py-4 text-sm font-bold">Sub-Unidade A</td>
-                <td className="px-6 py-4 text-sm">R$ 450,00</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-tertiary text-sm">check_circle</span>
-                    <span className="text-xs">Processado</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="text-on-surface-variant hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-lg">more_vert</span>
-                  </button>
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-sm text-on-surface-variant">
+                  Nenhuma transação recente encontrada no banco de dados para esta unidade.
                 </td>
               </tr>
             </tbody>
