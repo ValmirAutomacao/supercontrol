@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi import Form
 import uvicorn
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -37,7 +38,7 @@ def read_root():
     return {"status": "ok", "service": "GF Gas Control API"}
 
 @app.post("/api/upload-pdf")
-async def upload_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def upload_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...), unidade_id: str = Form(None)):
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
         
@@ -45,11 +46,11 @@ async def upload_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(
     content = await file.read()
     
     # Process PDF asynchronously
-    background_tasks.add_task(process_pdf_task, content, file.filename)
+    background_tasks.add_task(process_pdf_task, content, file.filename, unidade_id)
     
     return {"message": "PDF recebido e sendo processado em background", "filename": file.filename}
 
-def process_pdf_task(pdf_content: bytes, filename: str):
+def process_pdf_task(pdf_content: bytes, filename: str, forced_unidade_id: str = None):
     try:
         raw_text = extract_invoice_data(pdf_content)
         if not raw_text:
@@ -67,13 +68,17 @@ def process_pdf_task(pdf_content: bytes, filename: str):
             print(f"[{filename}] Sucesso na extração estruturada: {data}", flush=True)
             try:
                 unidade_nome = data.get('unidade_nome', '')
+                unidade_id = None
                 
-                # Try to find the correct Unit ID based on the name extracted
-                unidade_response = supabase.table('unidades').select('id, nome').ilike('nome', f"%{unidade_nome.split()[0]}%").execute()
-                
-                if unidade_response.data and len(unidade_response.data) > 0:
-                    unidade_id = unidade_response.data[0]['id']
-                    
+                if forced_unidade_id:
+                    unidade_id = forced_unidade_id
+                else:
+                    # Try to find the correct Unit ID based on the name extracted
+                    unidade_response = supabase.table('unidades').select('id, nome').ilike('nome', f"%{unidade_nome.split()[0]}%").execute()
+                    if unidade_response.data and len(unidade_response.data) > 0:
+                        unidade_id = unidade_response.data[0]['id']
+                        
+                if unidade_id:
                     data_ref = data.get('data_referencia')
                     faturamento = float(data.get('faturamento_total', 0))
                     recebimento = float(data.get('recebimento_total', 0))
@@ -98,9 +103,9 @@ def process_pdf_task(pdf_content: bytes, filename: str):
                         
                     if inserts:
                         res = supabase.table('lancamentos').insert(inserts).execute()
-                        print(f"[{filename}] Lançamentos inseridos com sucesso no Supabase! {len(inserts)} registros.", flush=True)
+                        print(f"[{filename}] Lançamentos inseridos com sucesso no Supabase! {len(inserts)} registros para unidade {unidade_id}.", flush=True)
                 else:
-                    print(f"[{filename}] ERRO: Unidade '{unidade_nome}' não encontrada no banco de dados.", flush=True)
+                    print(f"[{filename}] ERRO: Unidade '{unidade_nome}' não encontrada no banco de dados e nenhum ID forçado foi passado.", flush=True)
                     
             except Exception as e:
                 print(f"[{filename}] Erro inserindo no Supabase: {e}", flush=True)

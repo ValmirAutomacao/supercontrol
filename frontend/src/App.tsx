@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import DataIngestion from './pages/DataIngestion';
 import UnitDashboard from './pages/UnitDashboard';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -35,7 +34,6 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="dashboard/:unidadeId" element={<UnitDashboard />} />
           <Route path="relatorios" element={<Reports />} />
-          <Route path="lancamento" element={<DataIngestion />} />
           <Route path="configuracoes" element={<Settings />} />
           <Route path="suporte" element={<div className="font-bold text-2xl text-zinc-600 p-8">Módulo Suporte e Base de Conhecimento (Em Breve)</div>} />
         </Route>

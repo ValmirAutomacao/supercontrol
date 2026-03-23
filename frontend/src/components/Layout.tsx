@@ -72,7 +72,7 @@ export default function Layout() {
                 <div className="px-3 py-2 text-xs text-zinc-600 italic">Carregando unidades...</div>
               ) : (
                 unidades.map(u => (
-                  <Link key={u.id} to={`/dashboard/${u.nome.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className={navItemClass(`/dashboard/${u.nome.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`)}>
+                  <Link key={u.id} to={`/dashboard/${u.id}`} className={navItemClass(`/dashboard/${u.id}`)}>
                     <span className="material-symbols-outlined text-[18px] opacity-70">storefront</span>
                     <span className="truncate">{u.nome}</span>
                   </Link>
@@ -81,16 +81,7 @@ export default function Layout() {
             </nav>
           </div>
 
-          {/* Section: Actions */}
-          <div>
-            <p className="px-3 text-xs font-bold uppercase tracking-wider text-zinc-600 mb-3">Ingestão</p>
-            <nav className="space-y-1">
-              <Link to="/lancamento" className={navItemClass('/lancamento')}>
-                <span className="material-symbols-outlined text-[20px]">upload_file</span>
-                Pipeline de Dados
-              </Link>
-            </nav>
-          </div>
+          {/* Removed Ingestion section since it is embedded inside Units now */}
 
         </div>
 
