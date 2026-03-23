@@ -85,7 +85,7 @@ def process_pdf_task(pdf_content: bytes, filename: str):
                             "unidade_id": unidade_id,
                             "tipo": "faturamento",
                             "valor": faturamento,
-                            "origem": "importado"
+                            "origem": "pdf_import"
                         })
                     if recebimento > 0:
                         inserts.append({
@@ -93,7 +93,7 @@ def process_pdf_task(pdf_content: bytes, filename: str):
                             "unidade_id": unidade_id,
                             "tipo": "recebimento",
                             "valor": recebimento,
-                            "origem": "importado"
+                            "origem": "pdf_import"
                         })
                         
                     if inserts:
