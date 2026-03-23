@@ -1,6 +1,5 @@
-
-
 import { useParams } from 'react-router-dom';
+import { useResumoSubUnidades } from '../hooks/useMetrics';
 
 export default function UnitDashboard() {
   const { id } = useParams<{ id: string }>();
@@ -11,12 +10,29 @@ export default function UnitDashboard() {
       'ilheus': 'GF Ilhéus',
       'itabuna': 'GF Itabuna',
       'itapetinga': 'GF Itapetinga',
-      'conquista': 'GF Vitória da Conquista'
+      'conquista': 'GF Vitória da Conquista',
+      'santa-cruz': 'Santa Cruz Tecnologia',
+      'santacruz': 'Santa Cruz Tecnologia'
     };
     return names[name.toLowerCase()] || name.charAt(0).toUpperCase() + name.slice(1);
   };
 
   const unitName = formatUnitName(id || '');
+  const { data: subUnidadesData, loading } = useResumoSubUnidades();
+
+  // Filter the view data to just this unit. 
+  const unitStats = subUnidadesData.filter(d => 
+    d.unidade_nome.toLowerCase().includes(unitName.toLowerCase().replace('gf ', '')) ||
+    unitName.toLowerCase().includes(d.unidade_nome.toLowerCase())
+  );
+
+  // Calculate aggregates for this unit based on its sub-units (or just its own row)
+  const totalFaturamento = unitStats.reduce((sum, item) => sum + Number(item.faturamento), 0);
+  const totalRecebimento = unitStats.reduce((sum, item) => sum + Number(item.recebimento), 0);
+  const totalGap = unitStats.reduce((sum, item) => sum + Number(item.gap), 0);
+  
+  // Format to BRL
+  const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
     <div className="p-8">
@@ -52,24 +68,43 @@ export default function UnitDashboard() {
                 <span className="material-symbols-outlined text-tertiary">monitor_heart</span>
                 Saúde da Unidade
               </h3>
-              <span className="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full border border-tertiary/20">OTIMIZADO</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${totalGap > 0 ? 'bg-error/10 text-error border-error/20' : 'bg-tertiary/10 text-tertiary border-tertiary/20'}`}>
+                {totalGap > 0 ? 'ALERTA DE GAP' : 'OTIMIZADO'}
+              </span>
             </div>
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-on-surface-variant mb-1">GAP MENSAL ATUAL</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-on-surface tracking-tighter">R$ 12.450,00</span>
-                  <span className="text-tertiary text-sm font-bold flex items-center">
-                    <span className="material-symbols-outlined text-sm">arrow_downward</span>
-                    12%
-                  </span>
+            
+            {loading ? (
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-surface-container-high rounded w-1/3"></div>
+                <div className="h-8 bg-surface-container-high rounded w-2/3"></div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-on-surface-variant mb-1">FATURAMENTO TOTAL</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-on-surface tracking-tighter">{formatCurrency(totalFaturamento)}</span>
+                  </div>
                 </div>
+                <div>
+                  <p className="text-xs text-on-surface-variant mb-1 mt-2">GAP ATUAL (Falta Receber)</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className={`text-xl font-bold tracking-tighter ${totalGap > 0 ? 'text-error' : 'text-on-surface'}`}>
+                      {formatCurrency(totalGap)}
+                    </span>
+                  </div>
+                </div>
+                <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden mt-4">
+                  <div 
+                    className={`h-full ${totalGap > 0 ? 'bg-error' : 'bg-tertiary'}`} 
+                    style={{ width: totalFaturamento > 0 ? `${Math.min(100, (totalRecebimento / totalFaturamento) * 100)}%` : '0%' }}>
+                  </div>
+                </div>
+                <p className="text-xs text-on-surface-variant italic leading-tight">
+                  {totalFaturamento > 0 ? `${((totalRecebimento / totalFaturamento) * 100).toFixed(1)}% recebido em relação ao faturamento.` : 'Sem movimentação no período.'}
+                </p>
               </div>
-              <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                <div className="h-full bg-tertiary w-[88%]"></div>
-              </div>
-              <p className="text-xs text-on-surface-variant italic leading-tight">Projeção de fechamento dentro da meta estabelecida.</p>
-            </div>
+            )}
           </div>
         </div>
 
