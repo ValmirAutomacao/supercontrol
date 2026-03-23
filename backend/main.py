@@ -59,18 +59,56 @@ def process_pdf_task(pdf_content: bytes, filename: str):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-        print(f"[{filename}] Extraindo dados financeiros com GPT-4o...")
+        print(f"[{filename}] Extraindo dados financeiros com GPT-4o...", flush=True)
         data = loop.run_until_complete(process_pdf_with_ai(raw_text, filename))
         loop.close()
         
         if data:
-            print(f"[{filename}] Sucesso na extração estruturada: {data}")
-            #TODO: Inserts no Supabase com formatação correta.
+            print(f"[{filename}] Sucesso na extração estruturada: {data}", flush=True)
+            try:
+                unidade_nome = data.get('unidade_nome', '')
+                
+                # Try to find the correct Unit ID based on the name extracted
+                unidade_response = supabase.table('unidades').select('id, nome').ilike('nome', f"%{unidade_nome.split()[0]}%").execute()
+                
+                if unidade_response.data and len(unidade_response.data) > 0:
+                    unidade_id = unidade_response.data[0]['id']
+                    
+                    data_ref = data.get('data_referencia')
+                    faturamento = float(data.get('faturamento_total', 0))
+                    recebimento = float(data.get('recebimento_total', 0))
+                    
+                    inserts = []
+                    if faturamento > 0:
+                        inserts.append({
+                            "data": data_ref,
+                            "unidade_id": unidade_id,
+                            "tipo": "faturamento",
+                            "valor": faturamento,
+                            "origem": "ia"
+                        })
+                    if recebimento > 0:
+                        inserts.append({
+                            "data": data_ref,
+                            "unidade_id": unidade_id,
+                            "tipo": "recebimento",
+                            "valor": recebimento,
+                            "origem": "ia"
+                        })
+                        
+                    if inserts:
+                        res = supabase.table('lancamentos').insert(inserts).execute()
+                        print(f"[{filename}] Lançamentos inseridos com sucesso no Supabase! {len(inserts)} registros.", flush=True)
+                else:
+                    print(f"[{filename}] ERRO: Unidade '{unidade_nome}' não encontrada no banco de dados.", flush=True)
+                    
+            except Exception as e:
+                print(f"[{filename}] Erro inserindo no Supabase: {e}", flush=True)
         else:
-            print(f"[{filename}] Falha no parsing do JSON.")
+            print(f"[{filename}] Falha no parsing do JSON ou AI não retornou dados esperados.", flush=True)
             
     except Exception as e:
-        print(f"Erro ao processar {filename}: {e}")
+        print(f"Erro ao processar {filename}: {e}", flush=True)
 
 @app.post("/api/webhook/uazapi")
 async def webhook_uazapi(payload: dict):
