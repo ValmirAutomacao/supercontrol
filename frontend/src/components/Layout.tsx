@@ -1,7 +1,21 @@
 
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 
 export default function Layout() {
+  const location = useLocation();
+  const path = location.pathname;
+
+  const topNavClass = (target: string) => {
+    return path.startsWith(target)
+      ? "text-[#a78bfa] font-bold border-b-2 border-[#a78bfa] transition-colors duration-200 py-1"
+      : "text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] transition-colors duration-200 px-3 py-1 rounded";
+  };
+
+  const sideNavClass = (target: string) => {
+    return path === target
+      ? "bg-[#18181b] text-[#a78bfa] border-l-4 border-[#a78bfa] flex items-center px-4 py-3 active:scale-95 transition-transform"
+      : "text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] border-l-4 border-transparent active:scale-95 transition-transform";
+  };
   return (
     <div className="bg-background text-on-surface antialiased selection:bg-primary selection:text-on-primary min-h-screen">
       {/* TopAppBar Navigation */}
@@ -11,9 +25,9 @@ export default function Layout() {
         </div>
         <div className="hidden md:flex items-center gap-8">
           <nav className="flex gap-6">
-            <Link className="text-[#a78bfa] font-bold border-b-2 border-[#a78bfa] transition-colors duration-200 py-1" to="/dashboard">Dashboard</Link>
-            <Link className="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] transition-colors duration-200 px-3 py-1 rounded" to="/relatorios">Relatórios</Link>
-            <Link className="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] transition-colors duration-200 px-3 py-1 rounded" to="/lancamento">Lançamento</Link>
+            <Link className={topNavClass('/dashboard')} to="/dashboard">Dashboard</Link>
+            <Link className={topNavClass('/relatorios')} to="/relatorios">Relatórios</Link>
+            <Link className={topNavClass('/lancamento')} to="/lancamento">Lançamento</Link>
           </nav>
         </div>
         <div className="flex items-center gap-4 text-[#a78bfa]">
@@ -30,21 +44,21 @@ export default function Layout() {
           <p className="text-xs text-on-secondary-container">Unidades Operacionais</p>
         </div>
         <nav className="flex-1 px-2 space-y-1">
-          <Link className="bg-[#18181b] text-[#a78bfa] border-l-4 border-[#a78bfa] flex items-center px-4 py-3 active:scale-95 transition-transform" to="/dashboard/ilheus">
+          <Link className={sideNavClass('/dashboard/ilheus')} to="/dashboard/ilheus">
             <span className="material-symbols-outlined mr-3">location_on</span>
             <span className="font-geist text-sm">Ilhéus</span>
           </Link>
-          <Link className="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" to="/dashboard/itabuna">
+          <Link className={sideNavClass('/dashboard/itabuna')} to="/dashboard/itabuna">
             <span className="material-symbols-outlined mr-3">location_on</span>
             <span className="font-geist text-sm">Itabuna</span>
           </Link>
-          <Link className="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" to="/dashboard/itapetinga">
-            <span className="material-symbols-outlined mr-3">location_on</span>
-            <span className="font-geist text-sm">Itapetinga</span>
+          <Link className={sideNavClass('/dashboard/itapetinga')} to="/dashboard/itapetinga">
+             <span className="material-symbols-outlined mr-3">location_on</span>
+             <span className="font-geist text-sm">Itapetinga</span>
           </Link>
-          <Link className="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" to="/dashboard/conquista">
-            <span className="material-symbols-outlined mr-3">location_on</span>
-            <span className="font-geist text-sm">Vitória da Conquista</span>
+          <Link className={sideNavClass('/dashboard/conquista')} to="/dashboard/conquista">
+             <span className="material-symbols-outlined mr-3">location_on</span>
+             <span className="font-geist text-sm">Vitória da Conquista</span>
           </Link>
         </nav>
 

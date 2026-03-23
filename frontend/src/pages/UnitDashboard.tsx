@@ -1,6 +1,23 @@
 
 
+import { useParams } from 'react-router-dom';
+
 export default function UnitDashboard() {
+  const { id } = useParams<{ id: string }>();
+  
+  const formatUnitName = (name: string) => {
+    if (!name) return 'Unidade Operacional';
+    const names: Record<string, string> = {
+      'ilheus': 'GF Ilhéus',
+      'itabuna': 'GF Itabuna',
+      'itapetinga': 'GF Itapetinga',
+      'conquista': 'GF Vitória da Conquista'
+    };
+    return names[name.toLowerCase()] || name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
+  const unitName = formatUnitName(id || '');
+
   return (
     <div className="p-8">
       {/* Header Section */}
@@ -10,8 +27,8 @@ export default function UnitDashboard() {
             <span className="material-symbols-outlined text-sm">hub</span>
             <span className="text-xs font-bold uppercase tracking-widest">Hub de Operações</span>
           </div>
-          <h1 className="text-4xl font-black text-on-surface tracking-tighter">Unidade Operacional</h1>
-          <p className="text-on-surface-variant mt-1">Gestão centralizada</p>
+          <h1 className="text-4xl font-black text-on-surface tracking-tighter">{unitName}</h1>
+          <p className="text-on-surface-variant mt-1">Gestão centralizada da unidade</p>
         </div>
         <div className="flex gap-3">
           <button className="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-surface-container-high transition-colors">
