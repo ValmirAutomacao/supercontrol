@@ -7,6 +7,38 @@ export default function DataIngestion() {
   const [dataReferencia, setDataReferencia] = useState(new Date().toISOString().split('T')[0]);
   const [recebimento, setRecebimento] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Por favor, envie apenas arquivos PDF.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setUploadStatus(`Enviando ${file.name}...`);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/upload-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Falha no upload');
+
+      setUploadStatus(`Sucesso! O robô de IA está lendo o arquivo em segundo plano...`);
+      setTimeout(() => setUploadStatus(''), 8000);
+    } catch (err) {
+      console.error(err);
+      setUploadStatus('Erro ao conectar com a API de IA.');
+    }
+  };
 
   useEffect(() => {
     supabase.from('unidades').select('*').then(({ data }) => {
@@ -81,17 +113,24 @@ export default function DataIngestion() {
         {/* Main Workspace: PDF Upload & IA Preview */}
         <section className="lg:col-span-8 space-y-6">
           {/* Drag & Drop Zone */}
-          <div className="bg-surface-container border-2 border-dashed border-outline-variant rounded-xl p-12 flex flex-col items-center justify-center group hover:border-primary/50 transition-colors cursor-pointer bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+          <label className="bg-surface-container border-2 border-dashed border-outline-variant rounded-xl p-12 flex flex-col items-center justify-center group hover:border-primary/50 transition-colors cursor-pointer bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+            <input type="file" accept=".pdf" className="hidden" onChange={handleFileUpload} />
             <div className="w-16 h-16 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <span className="material-symbols-outlined text-3xl text-primary">picture_as_pdf</span>
             </div>
-            <h3 className="text-lg font-bold text-on-surface">Arraste arquivos do Águia Web</h3>
-            <p className="text-on-surface-variant text-sm text-center max-w-xs mt-2">Arraste os relatórios PDF exportados do ERP para iniciar a extração inteligente.</p>
+            <h3 className="text-lg font-bold text-on-surface">Arraste arquivos do Águia Web, ou clique aqui</h3>
+            <p className="text-on-surface-variant text-sm text-center max-w-xs mt-2">Envie os relatórios PDF exportados do ERP para iniciar a extração inteligente.</p>
+            {uploadStatus && (
+              <div className="mt-4 px-4 py-2 bg-primary/20 text-primary text-sm font-bold rounded flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">memory</span>
+                {uploadStatus}
+              </div>
+            )}
             <div className="mt-6 flex gap-2">
-              <span className="px-2 py-1 bg-surface-container-low border border-outline-variant text-[10px] text-secondary-fixed rounded uppercase font-bold tracking-tighter">Formatos: PDF, CSV</span>
+              <span className="px-2 py-1 bg-surface-container-low border border-outline-variant text-[10px] text-secondary-fixed rounded uppercase font-bold tracking-tighter">Formatos: PDF</span>
               <span className="px-2 py-1 bg-surface-container-low border border-outline-variant text-[10px] text-secondary-fixed rounded uppercase font-bold tracking-tighter">Max: 50MB</span>
             </div>
-          </div>
+          </label>
 
           {/* Extraction Progress & Preview Table */}
           <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
