@@ -1,187 +1,204 @@
 import { useParams } from 'react-router-dom';
-import { useResumoSubUnidades } from '../hooks/useMetrics';
+import { useResumoSubUnidades, useLancamentos } from '../hooks/useMetrics';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export default function UnitDashboard() {
-  const { id } = useParams<{ id: string }>();
+  const { unidadeId } = useParams<{ unidadeId: string }>();
   
-  const formatUnitName = (name: string) => {
-    if (!name) return 'Unidade Operacional';
-    const names: Record<string, string> = {
-      'ilheus': 'GF Ilhéus',
-      'itabuna': 'GF Itabuna',
-      'itapetinga': 'GF Itapetinga',
-      'conquista': 'GF Vitória da Conquista',
-      'santa-cruz': 'Santa Cruz Tecnologia',
-      'santacruz': 'Santa Cruz Tecnologia'
-    };
-    return names[name.toLowerCase()] || name.charAt(0).toUpperCase() + name.slice(1);
-  };
+  // Revert slug back to a matching name (basic heuristic since we fetch real units in sidebar)
+  // But ideally we just check if it matches ignoring case/spaces
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const searchKey = normalize(unidadeId || '');
 
-  const unitName = formatUnitName(id || '');
   const { data: subUnidadesData, loading } = useResumoSubUnidades();
+  const { data: lancamentos } = useLancamentos();
 
-  // Filter the view data to just this unit. 
-  const unitStats = subUnidadesData.filter(d => 
-    d.unidade_nome.toLowerCase().includes(unitName.toLowerCase().replace('gf ', '')) ||
-    unitName.toLowerCase().includes(d.unidade_nome.toLowerCase())
-  );
+  const unitStats = subUnidadesData.filter(d => normalize(d.unidade_nome).includes(searchKey));
+  
+  // Assuming the first match is our unit name
+  const realUnitName = unitStats.length > 0 ? unitStats[0].unidade_nome : (unidadeId || 'Unidade Operacional').toUpperCase();
 
-  // Calculate aggregates for this unit based on its sub-units (or just its own row)
   const totalFaturamento = unitStats.reduce((sum, item) => sum + Number(item.faturamento), 0);
   const totalRecebimento = unitStats.reduce((sum, item) => sum + Number(item.recebimento), 0);
   const totalGap = unitStats.reduce((sum, item) => sum + Number(item.gap), 0);
   
-  // Format to BRL
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
+  // Filter lancamentos that belong to this unit (using name match since we don't have ID in this specific view)
+  const unitTransactions = lancamentos.filter(l => l.unidades && normalize(l.unidades.nome).includes(searchKey)).slice(0, 10);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+          <span className="text-zinc-500 font-medium tracking-widest uppercase text-xs">Conectando ao banco de dados...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <span className="material-symbols-outlined text-sm">hub</span>
-            <span className="text-xs font-bold uppercase tracking-widest">Hub de Operações</span>
+    <div className="max-w-7xl mx-auto space-y-10 animate-fade-in pb-10">
+      
+      {/* Premium Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <span className="material-symbols-outlined text-white text-3xl">storefront</span>
           </div>
-          <h1 className="text-4xl font-black text-on-surface tracking-tighter">{unitName}</h1>
-          <p className="text-on-surface-variant mt-1">Gestão centralizada da unidade</p>
+          <div>
+            <div className="flex items-center gap-2 text-emerald-500 mb-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[10px] font-bold uppercase tracking-widest">Hub Local Ativo</span>
+            </div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white">{realUnitName}</h1>
+          </div>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-surface-container-high transition-colors">
-            <span className="material-symbols-outlined text-sm">refresh</span>
-            Forçar Sincronização
+          <button className="h-10 px-4 bg-white/5 border border-white/10 text-white rounded-xl text-sm font-bold hover:bg-white/10 transition-colors flex items-center gap-2">
+             <span className="material-symbols-outlined text-[18px]">sync</span>
+             <span>Sincronizar</span>
           </button>
-          <button className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <span className="material-symbols-outlined text-sm">download</span>
-            Exportar Relatório
+          <button className="h-10 px-4 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+             <span className="material-symbols-outlined text-[18px]">add</span>
+             <span>Lançar Resumo</span>
           </button>
         </div>
       </div>
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+      {/* Main Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
         {/* Unit Health Widget */}
-        <div className="md:col-span-4 bg-surface-container border border-outline-variant p-6 rounded-xl flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="font-bold text-on-surface-variant flex items-center gap-2">
-                <span className="material-symbols-outlined text-tertiary">monitor_heart</span>
-                Saúde da Unidade
-              </h3>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${totalGap > 0 ? 'bg-error/10 text-error border-error/20' : 'bg-tertiary/10 text-tertiary border-tertiary/20'}`}>
-                {totalGap > 0 ? 'ALERTA DE GAP' : 'OTIMIZADO'}
-              </span>
+        <div className="lg:col-span-4 bg-[#0a0a0a] border border-white/5 p-8 rounded-3xl flex flex-col relative overflow-hidden group">
+          <div className={`absolute top-0 right-0 w-64 h-64 blur-3xl rounded-full opacity-10 transition-opacity ${totalGap > 0 ? 'bg-rose-500' : 'bg-emerald-500 group-hover:opacity-20'}`}></div>
+          
+          <div className="flex justify-between items-start mb-10 relative z-10">
+            <h3 className="font-bold text-zinc-400 uppercase tracking-widest text-xs">Diagnóstico Atual</h3>
+            <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm ${totalGap > 0 ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+              {totalGap > 0 ? 'Alerta de Fluxo' : 'Operação 100%'}
+            </span>
+          </div>
+
+          <div className="space-y-8 flex-1 relative z-10">
+            <div>
+              <p className="text-sm text-zinc-500 mb-1 font-medium">Volumetria Processada (Bruto)</p>
+              <div className="text-4xl font-black text-white tracking-tighter">{formatCurrency(totalFaturamento)}</div>
             </div>
             
-            {loading ? (
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-surface-container-high rounded w-1/3"></div>
-                <div className="h-8 bg-surface-container-high rounded w-2/3"></div>
+            <div>
+              <p className="text-sm text-zinc-500 mb-1 font-medium mt-4">Gap em Aberto (Risco)</p>
+              <div className={`text-2xl font-bold tracking-tighter ${totalGap > 0 ? 'text-rose-400' : 'text-zinc-300'}`}>
+                {totalGap > 0 ? `- ${formatCurrency(totalGap)}` : 'R$ 0,00'}
               </div>
+            </div>
+
+            <div className="mt-8">
+              <div className="flex justify-between text-xs font-bold mb-2">
+                <span className="text-emerald-500">Conversão de Caixa</span>
+                <span className="text-zinc-300">{totalFaturamento > 0 ? ((totalRecebimento / totalFaturamento) * 100).toFixed(1) : '0'}%</span>
+              </div>
+              <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div 
+                  className={`h-full rounded-full transition-all duration-1000 ease-out ${totalGap > 0 ? 'bg-gradient-to-r from-rose-500 to-amber-500' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}`} 
+                  style={{ width: totalFaturamento > 0 ? `${Math.min(100, (totalRecebimento / totalFaturamento) * 100)}%` : '0%' }}>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chart Area */}
+        <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 rounded-3xl flex flex-col">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-lg font-bold text-white">Evolução do Faturamento Mensal</h3>
+              <p className="text-sm text-zinc-500">Acompanhamento da curva de liquidez ao longo do mês</p>
+            </div>
+          </div>
+          <div className="flex-1 min-h-[300px] -ml-6 mt-4">
+            {unitStats.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={unitStats} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                  <XAxis dataKey="sub_unidade_nome" tick={{fill: '#71717a', fontSize: 11, fontWeight: 600}} axisLine={false} tickLine={false} dy={10} />
+                  <YAxis tick={{fill: '#71717a', fontSize: 11}} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '12px', color: '#fafafa' }}
+                    itemStyle={{ fontSize: '13px', fontWeight: 600 }}
+                  />
+                  <Area type="monotone" dataKey="faturamento" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorFaturamento)" />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-on-surface-variant mb-1">FATURAMENTO TOTAL</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-on-surface tracking-tighter">{formatCurrency(totalFaturamento)}</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-on-surface-variant mb-1 mt-2">GAP ATUAL (Falta Receber)</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-xl font-bold tracking-tighter ${totalGap > 0 ? 'text-error' : 'text-on-surface'}`}>
-                      {formatCurrency(totalGap)}
-                    </span>
-                  </div>
-                </div>
-                <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden mt-4">
-                  <div 
-                    className={`h-full ${totalGap > 0 ? 'bg-error' : 'bg-tertiary'}`} 
-                    style={{ width: totalFaturamento > 0 ? `${Math.min(100, (totalRecebimento / totalFaturamento) * 100)}%` : '0%' }}>
-                  </div>
-                </div>
-                <p className="text-xs text-on-surface-variant italic leading-tight">
-                  {totalFaturamento > 0 ? `${((totalRecebimento / totalFaturamento) * 100).toFixed(1)}% recebido em relação ao faturamento.` : 'Sem movimentação no período.'}
-                </p>
-              </div>
+               <div className="h-full flex items-center justify-center text-zinc-600 font-medium">Gráfico indisponível para esta unidade.</div>
             )}
           </div>
         </div>
 
-        {/* Sync Status Cards */}
-        <div className="md:col-span-4 grid grid-rows-2 gap-4">
-          <div className="bg-surface-container border border-outline-variant p-4 rounded-xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">picture_as_pdf</span>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">Águia Web PDF</p>
-              <p className="text-sm font-bold text-on-surface">Extrator Automático</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="flex h-2 w-2 rounded-full bg-tertiary"></span>
-                <span className="text-[10px] text-tertiary font-bold">ÚLTIMA EXTRAÇÃO: 14:32</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-surface-container border border-outline-variant p-4 rounded-xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
-              <span className="material-symbols-outlined text-secondary">table_chart</span>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">Manual Excel Sync</p>
-              <p className="text-sm font-bold text-on-surface">Sincronização de Lançamento</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="flex h-2 w-2 rounded-full bg-error"></span>
-                <span className="text-[10px] text-error font-bold">REQUER ATENÇÃO</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Sub-units Quick View */}
-        <div className="md:col-span-4 bg-surface-container border border-outline-variant p-6 rounded-xl">
-          <h3 className="font-bold text-on-surface-variant mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined">account_tree</span>
-            Sub-unidades
-          </h3>
-          <div className="space-y-3">
-            <div className="text-sm text-center py-6 text-on-surface-variant italic">
-              Nenhuma sub-unidade cadastrada para este pólo.
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Transactions Table Section */}
-      <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
-        <div className="p-6 border-b border-outline-variant flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h3 className="font-bold text-lg text-on-surface">Transações Diárias</h3>
-          <div className="flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant">
-            <span className="material-symbols-outlined text-sm text-on-surface-variant">search</span>
-            <input className="bg-transparent border-none text-xs focus:ring-0 text-on-surface w-48 placeholder:text-outline" placeholder="Filtrar por ID..." type="text" />
+      <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden">
+        <div className="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h3 className="font-bold text-xl text-white">Últimos Lançamentos</h3>
+            <p className="text-sm text-zinc-500 mt-1">Histórico detalhado de faturamento e recebimentos na conta da unidade.</p>
           </div>
+          <button className="text-sm font-bold text-emerald-500 hover:text-white transition-colors">
+            Visualizar Todos
+          </button>
         </div>
+        
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left">
             <thead>
-              <tr className="bg-surface-container-high">
-                <th className="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">ID Transação</th>
-                <th className="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Sub-unidade</th>
-                <th className="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Valor</th>
-                <th className="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Ações</th>
+              <tr className="bg-[#0f0f0f]">
+                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 tracking-widest uppercase">Data (Reference)</th>
+                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 tracking-widest uppercase">Operação</th>
+                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Valor Registrado</th>
+                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-center">Protocolo</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/30">
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-sm text-on-surface-variant">
-                  Nenhuma transação recente encontrada no banco de dados para esta unidade.
-                </td>
-              </tr>
+            <tbody className="divide-y divide-white/5">
+              {unitTransactions.length > 0 ? unitTransactions.map((tx: any, idx: number) => (
+                <tr key={idx} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-8 py-5 font-mono text-sm text-zinc-400">{new Date(tx.data).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${tx.tipo === 'faturamento' ? 'bg-blue-500' : 'bg-emerald-500'}`}></div>
+                      <span className="text-sm font-bold text-zinc-200 capitalize">{tx.tipo}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-zinc-500 uppercase tracking-wider">{tx.origem === 'pdf_import' ? 'IA Automail' : 'Manual'}</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5 text-sm font-bold text-white text-right font-mono">
+                    R$ {tx.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                  </td>
+                  <td className="px-8 py-5 text-center">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
+                      <span className="material-symbols-outlined text-[14px]">done_all</span> Verificado
+                    </span>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={4} className="px-8 py-12 text-center text-sm text-zinc-500 italic">
+                    Nenhum histórico recente registrado para esta unidade.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
     </div>
   );
 }
