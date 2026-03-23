@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DataIngestion from './pages/DataIngestion';
 import UnitDashboard from './pages/UnitDashboard';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 import { useAuth } from './hooks/useAuth';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -32,10 +34,10 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="dashboard/:unidadeId" element={<UnitDashboard />} />
-          <Route path="relatorios" element={<div className="font-bold text-2xl text-on-surface p-8">Relatórios (Em Breve)</div>} />
+          <Route path="relatorios" element={<Reports />} />
           <Route path="lancamento" element={<DataIngestion />} />
-          <Route path="configuracoes" element={<div className="font-bold text-2xl text-on-surface p-8">Configurações (Em Breve)</div>} />
-          <Route path="suporte" element={<div className="font-bold text-2xl text-on-surface p-8">Suporte (Em Breve)</div>} />
+          <Route path="configuracoes" element={<Settings />} />
+          <Route path="suporte" element={<div className="font-bold text-2xl text-zinc-600 p-8">Módulo Suporte e Base de Conhecimento (Em Breve)</div>} />
         </Route>
       </Routes>
     </BrowserRouter>

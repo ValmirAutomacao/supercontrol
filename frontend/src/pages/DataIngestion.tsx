@@ -10,6 +10,18 @@ export default function DataIngestion() {
   const [loading, setLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [aiHistory, setAiHistory] = useState<any[]>([]);
+  const [apiHealth, setApiHealth] = useState('Loading...');
+
+  const checkApiHealth = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const res = await fetch(apiUrl);
+      if (res.ok) setApiHealth('Online');
+      else setApiHealth('Degraded');
+    } catch {
+      setApiHealth('Offline');
+    }
+  };
 
   const fetchHistory = async () => {
     const { data } = await supabase
@@ -60,7 +72,18 @@ export default function DataIngestion() {
       }
     });
     fetchHistory();
+    checkApiHealth();
   }, []);
+
+  const handleDeleteAI = async (id: string) => {
+    if (!window.confirm("Deseja rejeitar e apagar esta extração da IA?")) return;
+    const { error } = await supabase.from('lancamentos').delete().eq('id', id);
+    if (!error) {
+      fetchHistory();
+    } else {
+      alert("Erro ao remover: " + error.message);
+    }
+  };
 
   const handleRecebimentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let raw = e.target.value.replace(/\D/g, ''); 
@@ -212,9 +235,14 @@ export default function DataIngestion() {
                         {item.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
-                          Validado
-                        </span>
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
+                            Validado
+                          </span>
+                          <button onClick={() => handleDeleteAI(item.id)} className="w-7 h-7 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center transition-colors">
+                            <span className="material-symbols-outlined text-[14px]">delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
@@ -308,12 +336,12 @@ export default function DataIngestion() {
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-zinc-400 text-[18px]">api</span>
+                  <span className={`material-symbols-outlined text-[18px] ${apiHealth === 'Online' ? 'text-zinc-400' : 'text-rose-400'}`}>api</span>
                   <span className="text-xs font-bold text-zinc-300">Gateway Core</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-widest">Online</span>
+                  <span className={`w-2 h-2 rounded-full animate-pulse ${apiHealth === 'Online' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                  <span className={`text-[10px] uppercase font-bold tracking-widest ${apiHealth === 'Online' ? 'text-emerald-500' : 'text-rose-500'}`}>{apiHealth}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5">
