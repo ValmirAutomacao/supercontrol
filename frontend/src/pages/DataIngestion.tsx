@@ -5,7 +5,6 @@ export default function DataIngestion() {
   const [unidades, setUnidades] = useState<any[]>([]);
   const [selectedUnidade, setSelectedUnidade] = useState('');
   const [dataReferencia, setDataReferencia] = useState(new Date().toISOString().split('T')[0]);
-  const [faturamento, setFaturamento] = useState('');
   const [recebimento, setRecebimento] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,20 +22,9 @@ export default function DataIngestion() {
     setLoading(true);
 
     try {
-      const faturamentoNum = parseFloat(faturamento.replace(',', '.'));
       const recebimentoNum = parseFloat(recebimento.replace(',', '.'));
 
       const inserts = [];
-
-      if (!isNaN(faturamentoNum) && faturamentoNum > 0) {
-        inserts.push({
-          data: dataReferencia,
-          unidade_id: selectedUnidade,
-          tipo: 'faturamento',
-          valor: faturamentoNum,
-          origem: 'manual',
-        });
-      }
 
       if (!isNaN(recebimentoNum) && recebimentoNum > 0) {
         inserts.push({
@@ -51,11 +39,10 @@ export default function DataIngestion() {
       if (inserts.length > 0) {
         const { error } = await supabase.from('lancamentos').insert(inserts);
         if (error) throw error;
-        alert("Lançamento salvo com sucesso!");
-        setFaturamento('');
+        alert("Recebimento lançado com sucesso!");
         setRecebimento('');
       } else {
-        alert("Informe ao menos um valor de Faturamento ou Recebimento.");
+        alert("Informe um valor de Recebimento de Caixa válido.");
       }
     } catch (error) {
       console.error(error);
@@ -160,10 +147,6 @@ export default function DataIngestion() {
                        <option key={u.id} value={u.id}>{u.nome}</option>
                      ))}
                    </select>
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-on-surface-variant uppercase">Faturamento (R$)</label>
-                   <input type="number" step="0.01" value={faturamento} onChange={(e) => setFaturamento(e.target.value)} placeholder="0.00" className="w-full mt-1 bg-surface-container border border-outline-variant rounded p-2 text-sm text-on-surface" />
                 </div>
                 <div>
                    <label className="text-xs font-bold text-on-surface-variant uppercase">Recebimento de Caixa (R$)</label>
