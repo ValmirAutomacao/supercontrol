@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GF Comércio de Gás - Data Extraction</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary": "#0a0012",
+              "inverse-primary": "#5b21b6",
+              "surface-tint": "#a78bfa",
+              "surface-container": "#121215",
+              "secondary-container": "#27272a",
+              "on-secondary-fixed-variant": "#3f3f46",
+              "surface-container-highest": "#1e1e22",
+              "surface-bright": "#18181b",
+              "on-primary-container": "#ede9fe",
+              "surface-container-high": "#18181b",
+              "tertiary": "#34d399",
+              "surface-variant": "#18181b",
+              "outline": "#52525b",
+              "on-surface-variant": "#a1a1aa",
+              "on-secondary": "#09090b",
+              "surface-dim": "#0c0c0f",
+              "on-tertiary-container": "#bbf7d0",
+              "on-primary-fixed-variant": "#5b21b6",
+              "on-error": "#1a0000",
+              "on-secondary-container": "#a1a1aa",
+              "inverse-on-surface": "#09090b",
+              "secondary": "#71717a",
+              "primary": "#a78bfa",
+              "error-container": "#3b1111",
+              "on-tertiary": "#001a12",
+              "secondary-fixed": "#a1a1aa",
+              "on-background": "#fafafa",
+              "inverse-surface": "#fafafa",
+              "surface-container-low": "#0f0f12",
+              "tertiary-container": "#065f46",
+              "on-tertiary-fixed": "#003318",
+              "tertiary-fixed": "#bbf7d0",
+              "on-secondary-fixed": "#18181b",
+              "on-primary-fixed": "#2e1065",
+              "secondary-fixed-dim": "#71717a",
+              "primary-fixed": "#ede9fe",
+              "on-tertiary-fixed-variant": "#047857",
+              "primary-fixed-dim": "#c4b5fd",
+              "on-error-container": "#fca5a5",
+              "outline-variant": "#27272a",
+              "primary-container": "#7c3aed",
+              "error": "#ef4444",
+              "tertiary-fixed-dim": "#6ee7b7",
+              "on-surface": "#fafafa",
+              "surface": "#0c0c0f",
+              "background": "#09090b"
+            },
+            fontFamily: {
+              "headline": ["Geist"],
+              "body": ["Geist"],
+              "label": ["Geist"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#09090b] border-b border-[#27272a] transition-colors duration-200">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-[#fafafa] tracking-tight">GF Comércio de Gás</span>
+<nav class="hidden md:flex gap-6 items-center h-full">
+<a class="text-[#a78bfa] font-bold border-b-2 border-[#a78bfa] h-16 flex items-center px-2" href="#">Data Extraction</a>
+<a class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] px-2 h-16 flex items-center transition-colors" href="#">Relatórios</a>
+<a class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] px-2 h-16 flex items-center transition-colors" href="#">Estoque</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#a1a1aa] hover:bg-[#18181b] rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-[#a1a1aa] hover:bg-[#18181b] rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</button>
+<button class="p-2 text-error hover:bg-[#18181b] rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-4 w-64 bg-[#0c0c0f] border-r border-[#27272a] hidden md:flex">
+<div class="px-6 mb-8">
+<h2 class="text-lg font-black text-[#a78bfa] tracking-tighter uppercase">GF Distribuidora</h2>
+<p class="text-xs text-on-surface-variant">Unidades Operacionais</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-[#18181b] text-[#a78bfa] border-l-4 border-[#a78bfa] flex items-center px-6 py-3 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Ilhéus</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-6 py-3 hover:bg-[#18181b] hover:text-[#fafafa] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Itabuna</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-6 py-3 hover:bg-[#18181b] hover:text-[#fafafa] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Itapetinga</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-6 py-3 hover:bg-[#18181b] hover:text-[#fafafa] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Vitória da Conquista</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-[#27272a] pt-4 space-y-1">
+<a class="text-[#a1a1aa] flex items-center px-6 py-3 hover:bg-[#18181b] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="font-geist text-sm">Configurações</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-6 py-3 hover:bg-[#18181b] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help_outline">help_outline</span>
+<span class="font-geist text-sm">Suporte</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-20 px-6 pb-12">
+<div class="max-w-6xl mx-auto">
+<!-- Page Header -->
+<header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 text-primary mb-2">
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+<span class="text-xs font-bold tracking-widest uppercase">Smart Pipeline</span>
+</div>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Data Extraction &amp; Entry</h1>
+<p class="text-on-surface-variant mt-1">Sincronização automática entre Águia Web ERP e Planilhas Financeiras.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface rounded-lg text-sm font-medium hover:bg-surface-bright transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+                        Ver Histórico
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold hover:brightness-110 transition-all flex items-center gap-2 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-sm" data-icon="cloud_upload">cloud_upload</span>
+                        Nova Extração
+                    </button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Main Workspace: PDF Upload & IA Preview -->
+<section class="lg:col-span-8 space-y-6">
+<!-- Drag & Drop Zone -->
+<div class="bg-surface-container border-2 border-dashed border-outline-variant rounded-xl p-12 flex flex-col items-center justify-center group hover:border-primary/50 transition-colors cursor-pointer bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+<div class="w-16 h-16 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface">Arraste arquivos do Águia Web</h3>
+<p class="text-on-surface-variant text-sm text-center max-w-xs mt-2">Arraste os relatórios PDF exportados do ERP para iniciar a extração inteligente.</p>
+<div class="mt-6 flex gap-2">
+<span class="px-2 py-1 bg-surface-container-low border border-outline-variant text-[10px] text-secondary-fixed rounded uppercase font-bold tracking-tighter">Formatos: PDF, CSV</span>
+<span class="px-2 py-1 bg-surface-container-low border border-outline-variant text-[10px] text-secondary-fixed rounded uppercase font-bold tracking-tighter">Max: 50MB</span>
+</div>
+</div>
+<!-- Extraction Progress & Preview Table -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary" data-icon="psychology">psychology</span>
+<h3 class="font-bold text-on-surface">IA Extraction Preview</h3>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs text-on-surface-variant">Processando: 3/4 arquivos</span>
+<div class="w-32 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[75%] rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Data</th>
+<th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Unit (Unidade)</th>
+<th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">Amount (R$)</th>
+<th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="px-6 py-4 text-sm font-medium">12/10/2023</td>
+<td class="px-6 py-4 text-sm font-mono text-primary">ILH-CENTRO-01</td>
+<td class="px-6 py-4 text-sm font-bold text-right">R$ 14.250,00</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary/10 text-tertiary uppercase">Validado</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="px-6 py-4 text-sm font-medium">12/10/2023</td>
+<td class="px-6 py-4 text-sm font-mono text-primary">ITA-NORTE-04</td>
+<td class="px-6 py-4 text-sm font-bold text-right">R$ 8.940,50</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary/10 text-tertiary uppercase">Validado</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors group animate-pulse">
+<td class="px-6 py-4 text-sm font-medium text-on-surface-variant italic">Lendo...</td>
+<td class="px-6 py-4 text-sm font-mono text-on-surface-variant italic">VCA-OESTE-02</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-on-surface-variant">--</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary uppercase">IA Extraction...</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Sidebar Workspace: Excel Sync & Actions -->
+<section class="lg:col-span-4 space-y-6">
+<!-- Excel Planilha Sync -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-6">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-tertiary" data-icon="table_chart">table_chart</span>
+<h3 class="font-bold text-on-surface">Excel Planilha Sync</h3>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-surface-container-low border border-outline-variant rounded-lg">
+<label class="text-[10px] font-black uppercase text-on-surface-variant mb-3 block tracking-widest">Confirmação Manual (3 Colunas)</label>
+<div class="space-y-3">
+<div class="flex items-center justify-between group">
+<span class="text-xs text-on-surface">Coluna A: Data</span>
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center justify-between group">
+<span class="text-xs text-on-surface">Coluna B: Unidade</span>
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center justify-between group">
+<span class="text-xs text-on-surface">Coluna C: Valor Líquido</span>
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-highest rounded-lg p-4">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-bold text-on-surface">Destino: Financeiro_2023.xlsx</span>
+<span class="material-symbols-outlined text-sm text-primary" data-icon="link">link</span>
+</div>
+<p class="text-[10px] text-on-surface-variant leading-relaxed">Os dados extraídos serão inseridos automaticamente na próxima linha disponível da planilha conectada.</p>
+</div>
+<button class="w-full py-3 bg-tertiary text-on-tertiary rounded-lg font-bold text-sm hover:brightness-110 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+                                Confirmar &amp; Sincronizar
+                            </button>
+</div>
+</div>
+<!-- System Health & Monitoring -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-6">
+<h3 class="font-bold text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="terminal">terminal</span>
+                            System Health
+                        </h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-xs">
+<span class="text-on-surface-variant">API Águia Web</span>
+<span class="text-tertiary font-mono">ONLINE</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="text-on-surface-variant">AI Model v4.2</span>
+<span class="text-tertiary font-mono">READY</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="text-on-surface-variant">Sync Latency</span>
+<span class="text-on-surface font-mono">24ms</span>
+</div>
+</div>
+<div class="mt-6 pt-6 border-t border-outline-variant">
+<img class="w-full h-24 object-cover rounded-lg opacity-40 grayscale hover:grayscale-0 transition-all" data-alt="Abstract dark wave pattern with violet accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz1LxcM19fODCWTvAo0LLDOuJizOeSS5urSihpUCdC41vJMcJS2GpHrD1wPQo3gQNEzCy1m42IRwN_MKIFMykW7SzOdCo0cHhBzLLMDJ7EYp_JH6q5ebG1geg80dnrXygL0gYBVC_S_2GEgqBa6ArS1f3wGB4HENmAAqtDbRUGjv1NttMCV6sgSR2UfK_TwxVEcNO-GfyhkthFwS8w1f1Lkf_Q8adFeMiralwnfpxBYuKCu-GKvrSb3-MpTv0I9eN_gzqFNNtq9kAQ"/>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-12 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-outline-variant pt-6 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+<div class="flex items-center gap-6">
+<span>Versão 2.4.0-obsidian</span>
+<span>Last Sync: 2 minutes ago</span>
+</div>
+<div class="flex items-center gap-4">
+<a class="hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="hover:text-primary transition-colors" href="#">API Keys</a>
+<a class="hover:text-primary transition-colors" href="#">Logs</a>
+</div>
+</footer>
+</div>
+</main>
+<!-- Contextual FAB (Hidden on this transactional/focused screen as per rules) -->
+</body></html>

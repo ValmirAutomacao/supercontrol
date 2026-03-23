@@ -1,0 +1,10 @@
+.env
+venv*/
+backend/venv/
+__pycache__/
+node_modules/
+dist/
+*.pdf
+backend/pdf_output.txt
+.DS_Store
+.npm/

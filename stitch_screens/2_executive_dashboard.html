@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GF Comércio de Gás - Executive Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary": "#0a0012",
+              "inverse-primary": "#5b21b6",
+              "surface-tint": "#a78bfa",
+              "surface-container": "#121215",
+              "secondary-container": "#27272a",
+              "on-secondary-fixed-variant": "#3f3f46",
+              "surface-container-highest": "#1e1e22",
+              "surface-bright": "#18181b",
+              "on-primary-container": "#ede9fe",
+              "surface-container-high": "#18181b",
+              "tertiary": "#34d399",
+              "surface-variant": "#18181b",
+              "outline": "#52525b",
+              "on-surface-variant": "#a1a1aa",
+              "on-secondary": "#09090b",
+              "surface-dim": "#0c0c0f",
+              "on-tertiary-container": "#bbf7d0",
+              "on-primary-fixed-variant": "#5b21b6",
+              "on-error": "#1a0000",
+              "on-secondary-container": "#a1a1aa",
+              "inverse-on-surface": "#09090b",
+              "secondary": "#71717a",
+              "primary": "#a78bfa",
+              "error-container": "#3b1111",
+              "on-tertiary": "#001a12",
+              "secondary-fixed": "#a1a1aa",
+              "on-background": "#fafafa",
+              "inverse-surface": "#fafafa",
+              "surface-container-low": "#0f0f12",
+              "tertiary-container": "#065f46",
+              "on-tertiary-fixed": "#003318",
+              "tertiary-fixed": "#bbf7d0",
+              "on-secondary-fixed": "#18181b",
+              "on-primary-fixed": "#2e1065",
+              "secondary-fixed-dim": "#71717a",
+              "primary-fixed": "#ede9fe",
+              "on-tertiary-fixed-variant": "#047857",
+              "primary-fixed-dim": "#c4b5fd",
+              "on-error-container": "#fca5a5",
+              "outline-variant": "#27272a",
+              "primary-container": "#7c3aed",
+              "error": "#ef4444",
+              "tertiary-fixed-dim": "#6ee7b7",
+              "on-surface": "#fafafa",
+              "surface-container-lowest": "#09090b",
+              "surface": "#0c0c0f",
+              "background": "#09090b"
+            },
+            fontFamily: {
+              "headline": ["Geist"],
+              "body": ["Geist"],
+              "label": ["Geist"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Geist', sans-serif; }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar Navigation -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#09090b] border-b border-[#27272a]">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-[#fafafa] tracking-tight">GF Comércio de Gás</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-[#a78bfa] font-bold border-b-2 border-[#a78bfa] transition-colors duration-200 py-1" href="#">Dashboard</a>
+<a class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] transition-colors duration-200 px-3 py-1 rounded" href="#">Relatórios</a>
+<a class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] transition-colors duration-200 px-3 py-1 rounded" href="#">Logística</a>
+</nav>
+</div>
+<div class="flex items-center gap-4 text-[#a78bfa]">
+<button class="p-2 hover:bg-[#18181b] rounded-full transition-colors"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="p-2 hover:bg-[#18181b] rounded-full transition-colors"><span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span></button>
+<button class="p-2 hover:bg-[#18181b] rounded-full transition-colors"><span class="material-symbols-outlined" data-icon="warning">warning</span></button>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="fixed left-0 top-0 h-full hidden md:flex flex-col pt-20 pb-4 w-64 bg-[#0c0c0f] border-r border-[#27272a] z-40">
+<div class="px-6 mb-8">
+<h2 class="text-lg font-black text-[#a78bfa]">GF Distribuidora</h2>
+<p class="text-xs text-on-secondary-container">Unidades Operacionais</p>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="bg-[#18181b] text-[#a78bfa] border-l-4 border-[#a78bfa] flex items-center px-4 py-3 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Ilhéus</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Itabuna</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Itapetinga</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+<span class="font-geist text-sm">Vitória da Conquista</span>
+</a>
+</nav>
+<div class="px-2 pt-4 border-t border-[#27272a] space-y-1">
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="font-geist text-sm">Configurações</span>
+</a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help_outline">help_outline</span>
+<span class="font-geist text-sm">Suporte</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-12 px-6 md:ml-64 min-h-screen">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-black tracking-tight text-on-surface">Billing vs. Collections</h1>
+<p class="text-on-surface-variant">Real-time gap analysis across operational clusters.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-sm font-medium hover:bg-surface-bright transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+                        Last 30 Days
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold hover:brightness-110 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                        Export PDF
+                    </button>
+</div>
+</div>
+<!-- Key Metrics Cards - Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="p-5 bg-surface-container border border-outline-variant rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Billed</span>
+<span class="material-symbols-outlined text-primary" data-icon="receipt_long">receipt_long</span>
+</div>
+<div>
+<div class="text-2xl font-black text-on-surface">R$ 2.84M</div>
+<div class="text-xs text-tertiary flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +12.5% vs prev month
+                        </div>
+</div>
+</div>
+<div class="p-5 bg-surface-container border border-outline-variant rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Collected</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="payments">payments</span>
+</div>
+<div>
+<div class="text-2xl font-black text-on-surface">R$ 2.41M</div>
+<div class="text-xs text-tertiary flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +8.2% vs prev month
+                        </div>
+</div>
+</div>
+<div class="p-5 bg-surface-container border border-outline-variant rounded-xl flex flex-col justify-between h-32 relative overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Current Gap</span>
+<span class="material-symbols-outlined text-error" data-icon="difference">difference</span>
+</div>
+<div class="z-10">
+<div class="text-2xl font-black text-on-surface">R$ 432.1k</div>
+<div class="text-xs text-error flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                            Critical: 15.2% Gap
+                        </div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" data-icon="account_balance">account_balance</span>
+</div>
+</div>
+<div class="p-5 bg-surface-container border border-outline-variant rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Gap Trend</span>
+<span class="material-symbols-outlined text-primary" data-icon="query_stats">query_stats</span>
+</div>
+<div>
+<div class="text-2xl font-black text-on-surface">Increasing</div>
+<div class="text-xs text-on-surface-variant flex items-center gap-1 mt-1">
+                            Velocity slowed by 2.4%
+                        </div>
+</div>
+</div>
+</div>
+<!-- Visual Analytics Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Unit Performance Chart -->
+<div class="lg:col-span-2 p-6 bg-surface-container border border-outline-variant rounded-xl">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="font-bold text-lg text-on-surface">Billed vs. Collected by Unit</h3>
+<p class="text-sm text-on-surface-variant">Regional performance comparison</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-xs text-on-surface-variant">Billed</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-xs text-on-surface-variant">Collected</span>
+</div>
+</div>
+</div>
+<!-- Simplified Bar Chart Representation -->
+<div class="space-y-6">
+<!-- Ilhéus -->
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase">
+<span>Ilhéus</span>
+<span class="text-on-surface">92% Recovery</span>
+</div>
+<div class="h-8 w-full bg-surface-container-highest rounded flex overflow-hidden">
+<div class="bg-primary h-full transition-all" style="width: 85%;"></div>
+<div class="bg-tertiary h-full transition-all" style="width: 78%; margin-left: -78%;"></div>
+</div>
+</div>
+<!-- Itabuna -->
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase">
+<span>Itabuna</span>
+<span class="text-error">78% Recovery</span>
+</div>
+<div class="h-8 w-full bg-surface-container-highest rounded flex overflow-hidden">
+<div class="bg-primary h-full transition-all" style="width: 95%;"></div>
+<div class="bg-tertiary h-full transition-all" style="width: 74%; margin-left: -74%;"></div>
+</div>
+</div>
+<!-- Itapetinga -->
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase">
+<span>Itapetinga</span>
+<span class="text-on-surface">96% Recovery</span>
+</div>
+<div class="h-8 w-full bg-surface-container-highest rounded flex overflow-hidden">
+<div class="bg-primary h-full transition-all" style="width: 60%;"></div>
+<div class="bg-tertiary h-full transition-all" style="width: 58%; margin-left: -58%;"></div>
+</div>
+</div>
+<!-- Vitória da Conquista -->
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase">
+<span>Conquista</span>
+<span class="text-on-surface">88% Recovery</span>
+</div>
+<div class="h-8 w-full bg-surface-container-highest rounded flex overflow-hidden">
+<div class="bg-primary h-full transition-all" style="width: 75%;"></div>
+<div class="bg-tertiary h-full transition-all" style="width: 66%; margin-left: -66%;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Critical Discrepancies List -->
+<div class="p-6 bg-surface-container border border-outline-variant rounded-xl flex flex-col">
+<div class="mb-6">
+<h3 class="font-bold text-lg text-on-surface">Critical Discrepancies</h3>
+<p class="text-sm text-on-surface-variant">Immediate action required</p>
+</div>
+<div class="flex-1 space-y-4">
+<!-- Critical Item 1 -->
+<div class="p-4 bg-surface-container-high border-l-4 border-error rounded-r-lg flex items-center justify-between">
+<div>
+<div class="font-bold text-on-surface">Itabuna Central</div>
+<div class="text-xs text-on-surface-variant">Commercial Route A-42</div>
+</div>
+<div class="text-right">
+<div class="text-error font-black">- R$ 112k</div>
+<div class="text-[10px] uppercase font-bold text-error animate-pulse">Critical Gap</div>
+</div>
+</div>
+<!-- Critical Item 2 -->
+<div class="p-4 bg-surface-container-high border-l-4 border-error rounded-r-lg flex items-center justify-between">
+<div>
+<div class="font-bold text-on-surface">Ilhéus Norte</div>
+<div class="text-xs text-on-surface-variant">Industrial Cluster B</div>
+</div>
+<div class="text-right">
+<div class="text-error font-black">- R$ 48k</div>
+<div class="text-[10px] uppercase font-bold text-error">Delayed</div>
+</div>
+</div>
+<!-- Warning Item 3 -->
+<div class="p-4 bg-surface-container-high border-l-4 border-[#f59e0b] rounded-r-lg flex items-center justify-between">
+<div>
+<div class="font-bold text-on-surface">Conquista Sul</div>
+<div class="text-xs text-on-surface-variant">Residential Zone 12</div>
+</div>
+<div class="text-right">
+<div class="text-[#f59e0b] font-black">- R$ 32k</div>
+<div class="text-[10px] uppercase font-bold text-[#f59e0b]">Reviewing</div>
+</div>
+</div>
+</div>
+<button class="mt-6 w-full py-3 border border-outline-variant rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-bright transition-colors">
+                        View All Discrepancies
+                    </button>
+</div>
+</div>
+<!-- Geographical Insights (Asymmetric Row) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="md:col-span-1 p-6 bg-surface-container border border-outline-variant rounded-xl flex flex-col justify-center items-center text-center space-y-4">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="map">map</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Regional Density</h4>
+<p class="text-xs text-on-surface-variant mt-1">Highest billing density currently in <b>Itabuna Region</b> despite collection lag.</p>
+</div>
+</div>
+<div class="md:col-span-3 bg-surface-container border border-outline-variant rounded-xl overflow-hidden relative group">
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10 opacity-60"></div>
+<img alt="Regional Map View" class="w-full h-48 object-cover grayscale brightness-50 group-hover:scale-105 transition-transform duration-700" data-alt="Dark stylized map showing Bahia southern region infrastructure" data-location="Bahia, Brazil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQdOwe8jCuinj2dykq0s8ME6tSwAbDkztX3vgICWQll7JZQLNmH8GhP-3k0wSmattddfNHsgF8b9NBD8hHpZbo83GpY0askA3RriKo5sYv0cROGspZo_QL4X76s5RK2u-vlDfUs_d_ghc8c8q_pck8xRap3frWpxk_dvr6T5KeEK9LVejcdsa1TapvSVaLSq1G6LkMnZ2kSI2-SYXxOBkYlyz54MLetdmDtk8fGH52r4nkeTG0cAjbHN4Lj2A7iVjzit0yXOCFMIbb"/>
+<div class="absolute bottom-4 left-6 z-20">
+<span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded mb-2 inline-block">Live Logistics Overlay</span>
+<h4 class="text-xl font-black text-on-surface">Operational Unit Mapping</h4>
+</div>
+<div class="absolute top-4 right-4 z-20 flex gap-2">
+<div class="flex items-center gap-1 bg-background/80 backdrop-blur-md px-2 py-1 rounded border border-outline-variant text-[10px] text-on-surface">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> 42 Active Vehicles
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Dashboard Action) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-2xl" data-icon="add">add</span>
+</button>
+</body></html>

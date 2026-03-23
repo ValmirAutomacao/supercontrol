@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary": "#0a0012",
+              "inverse-primary": "#5b21b6",
+              "surface-tint": "#a78bfa",
+              "surface-container": "#121215",
+              "secondary-container": "#27272a",
+              "on-secondary-fixed-variant": "#3f3f46",
+              "surface-container-highest": "#1e1e22",
+              "surface-bright": "#18181b",
+              "on-primary-container": "#ede9fe",
+              "surface-container-high": "#18181b",
+              "tertiary": "#34d399",
+              "surface-variant": "#18181b",
+              "outline": "#52525b",
+              "on-surface-variant": "#a1a1aa",
+              "on-secondary": "#09090b",
+              "surface-dim": "#0c0c0f",
+              "on-tertiary-container": "#bbf7d0",
+              "on-primary-fixed-variant": "#5b21b6",
+              "on-error": "#1a0000",
+              "on-secondary-container": "#a1a1aa",
+              "inverse-on-surface": "#09090b",
+              "secondary": "#71717a",
+              "primary": "#a78bfa",
+              "error-container": "#3b1111",
+              "on-tertiary": "#001a12",
+              "secondary-fixed": "#a1a1aa",
+              "on-background": "#fafafa",
+              "inverse-surface": "#fafafa",
+              "surface-container-low": "#0f0f12",
+              "tertiary-container": "#065f46",
+              "on-tertiary-fixed": "#003318",
+              "tertiary-fixed": "#bbf7d0",
+              "on-secondary-fixed": "#18181b",
+              "on-primary-fixed": "#2e1065",
+              "secondary-fixed-dim": "#71717a",
+              "primary-fixed": "#ede9fe",
+              "on-tertiary-fixed-variant": "#047857",
+              "primary-fixed-dim": "#c4b5fd",
+              "on-error-container": "#fca5a5",
+              "outline-variant": "#27272a",
+              "primary-container": "#7c3aed",
+              "error": "#ef4444",
+              "tertiary-fixed-dim": "#6ee7b7",
+              "on-surface": "#fafafa",
+              "surface": "#0c0c0f",
+              "background": "#09090b"
+            },
+            fontFamily: {
+              "headline": ["Geist"],
+              "body": ["Geist"],
+              "label": ["Geist"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#09090b] border-b border-[#27272a] transition-colors duration-200">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-[#fafafa] tracking-tight">GF Comércio de Gás</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-4">
+<span class="text-[#a1a1aa] font-geist text-sm">Status do Sistema: <span class="text-tertiary">Operacional</span></span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</button>
+<button class="text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa] p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="User profile avatar icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlZD4BrrlprE3MXLLhooIb_0ULDYioRGXI5Ka2FOYs-HK3kRROOgxVw4vBbOq29saP3399fl8n3HzE1BW4KdKFzv_bCtO8mRS5SpPZ-L6Gw2CCPeJAq_5atnmj00yFV3En7HYMLvfruisIFwTcH4iWNqlPkUQMQzS2V9NYI5E1hfSvvoH7yv1r6EDRwwHP1KDGJItzNBvExQtwDoHEoQQFK_3Fx2GuxiDoPepgMdlmAaQHWh135GRpCj4pr8ihxGxqo-tem7ClmjuR"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-4 w-64 bg-[#0c0c0f] border-r border-[#27272a] z-40">
+<div class="px-6 mb-8">
+<h2 class="text-lg font-black text-[#a78bfa] font-geist">GF Distribuidora</h2>
+<p class="text-xs text-[#a1a1aa]">Unidades Operacionais</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-[#18181b] text-[#a78bfa] border-l-4 border-[#a78bfa] flex items-center px-4 py-3 font-geist text-sm active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+                Ilhéus
+            </a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] font-geist text-sm active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+                Itabuna
+            </a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] font-geist text-sm active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+                Itapetinga
+            </a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] font-geist text-sm active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="location_on">location_on</span>
+                Vitória da Conquista
+            </a>
+</nav>
+<div class="mt-auto pt-4 border-t border-[#27272a] space-y-1">
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] font-geist text-sm active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+                Configurações
+            </a>
+<a class="text-[#a1a1aa] flex items-center px-4 py-3 hover:bg-[#18181b] hover:text-[#fafafa] font-geist text-sm active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help_outline">help_outline</span>
+                Suporte
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 pt-20 p-8 min-h-screen">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<div class="flex items-center gap-2 text-primary mb-1">
+<span class="material-symbols-outlined text-sm" data-icon="hub">hub</span>
+<span class="text-xs font-bold uppercase tracking-widest">Hub de Operações</span>
+</div>
+<h1 class="text-4xl font-black text-on-surface tracking-tighter">Unidade Ilhéus</h1>
+<p class="text-on-surface-variant mt-1">Gestão centralizada de GF Ilhéus e FM Ilhéus</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span>
+                    Forçar Sincronização
+                </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                    Exportar Relatório
+                </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+<!-- Unit Health Widget -->
+<div class="md:col-span-4 bg-surface-container border border-outline-variant p-6 rounded-xl flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-bold text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" data-icon="monitor_heart" style="font-variation-settings: 'FILL' 1;">monitor_heart</span>
+                            Unit Health
+                        </h3>
+<span class="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full border border-tertiary/20">OTIMIZADO</span>
+</div>
+<div class="space-y-4">
+<div>
+<p class="text-xs text-on-surface-variant mb-1">GAP MENSAL ATUAL</p>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black text-on-surface tracking-tighter">R$ 12.450,00</span>
+<span class="text-tertiary text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_downward">arrow_downward</span>
+                                    12%
+                                </span>
+</div>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[88%]"></div>
+</div>
+<p class="text-xs text-on-surface-variant italic leading-tight">Projeção de fechamento dentro da meta estabelecida para a região costeira.</p>
+</div>
+</div>
+</div>
+<!-- Sync Status Cards -->
+<div class="md:col-span-4 grid grid-rows-2 gap-4">
+<!-- PDF extraction status -->
+<div class="bg-surface-container border border-outline-variant p-4 rounded-xl flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">Águia Web PDF</p>
+<p class="text-sm font-bold text-on-surface">Extrator Automático</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="flex h-2 w-2 rounded-full bg-tertiary"></span>
+<span class="text-[10px] text-tertiary font-bold">ÚLTIMA EXTRAÇÃO: 14:32</span>
+</div>
+</div>
+</div>
+<!-- Excel sync status -->
+<div class="bg-surface-container border border-outline-variant p-4 rounded-xl flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="table_chart">table_chart</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">Manual Excel Sync</p>
+<p class="text-sm font-bold text-on-surface">Sincronização de Planilha</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="flex h-2 w-2 rounded-full bg-error"></span>
+<span class="text-[10px] text-error font-bold">REQUER ATENÇÃO: 3 LINHAS</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sub-units Quick View -->
+<div class="md:col-span-4 bg-surface-container border border-outline-variant p-6 rounded-xl">
+<h3 class="font-bold text-on-surface-variant mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+                    Sub-unidades
+                </h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 bg-surface-container-high rounded-lg border border-outline-variant/50">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-sm font-bold">GF Ilhéus</span>
+</div>
+<span class="text-xs text-on-surface-variant font-mono">ID: 001-ILH</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-high rounded-lg border border-outline-variant/50">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-sm font-bold">FM Ilhéus</span>
+</div>
+<span class="text-xs text-on-surface-variant font-mono">ID: 002-ILH</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Transactions Table Section -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<h3 class="font-bold text-lg text-on-surface">Transações Diárias</h3>
+<div class="flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="search">search</span>
+<input class="bg-transparent border-none text-xs focus:ring-0 text-on-surface w-48 placeholder:text-outline" placeholder="Filtrar por ID ou Cliente..." type="text"/>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high">
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">ID Transação</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Sub-unidade</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Valor</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">PDF Status</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Excel Sync</th>
+<th class="px-6 py-4 text-[10px] font-black text-on-surface-variant tracking-widest uppercase">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-6 py-4 font-mono text-sm text-primary">#TX-99210</td>
+<td class="px-6 py-4 text-sm font-bold">GF Ilhéus</td>
+<td class="px-6 py-4 text-sm">R$ 450,00</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-xs">Processado</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="sync" style="font-variation-settings: 'FILL' 1;">sync</span>
+<span class="text-xs">Sincronizado</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-6 py-4 font-mono text-sm text-primary">#TX-99211</td>
+<td class="px-6 py-4 text-sm font-bold">FM Ilhéus</td>
+<td class="px-6 py-4 text-sm">R$ 1.220,00</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-xs">Processado</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-sm" data-icon="error_outline">error_outline</span>
+<span class="text-xs text-error font-bold">Pendente</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-6 py-4 font-mono text-sm text-primary">#TX-99212</td>
+<td class="px-6 py-4 text-sm font-bold">GF Ilhéus</td>
+<td class="px-6 py-4 text-sm">R$ 89,00</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="animate-pulse bg-primary/20 p-0.5 rounded-full"><span class="material-symbols-outlined text-primary text-sm" data-icon="sync">sync</span></span>
+<span class="text-xs italic">Extraindo...</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant/30 text-sm" data-icon="hourglass_empty">hourglass_empty</span>
+<span class="text-xs text-on-surface-variant/50">Aguardando PDF</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-6 py-4 font-mono text-sm text-primary">#TX-99213</td>
+<td class="px-6 py-4 text-sm font-bold">FM Ilhéus</td>
+<td class="px-6 py-4 text-sm">R$ 3.400,00</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-xs">Processado</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="sync" style="font-variation-settings: 'FILL' 1;">sync</span>
+<span class="text-xs">Sincronizado</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 border-t border-outline-variant flex justify-between items-center bg-surface-container">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Mostrando 4 de 128 transações</p>
+<div class="flex gap-2">
+<button class="px-2 py-1 bg-surface-container-highest border border-outline-variant rounded hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="px-2 py-1 bg-surface-container-highest border border-outline-variant rounded hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for quick action (as specified for contextually relevant screens) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined" data-icon="add" style="font-variation-settings: 'wght' 700;">add</span>
+</button>
+</body></html>
