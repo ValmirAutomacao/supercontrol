@@ -25,7 +25,7 @@ export default function UnitDashboard() {
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   // Filter lancamentos that belong to this unit (using name match since we don't have ID in this specific view)
-  const unitTransactions = lancamentos.filter(l => l.unidades && normalize(l.unidades.nome).includes(searchKey)).slice(0, 10);
+  const unitTransactions = lancamentos.filter((l: any) => l.unidades && normalize(l.unidades.nome).includes(searchKey)).slice(0, 10);
 
   if (loading) {
     return (

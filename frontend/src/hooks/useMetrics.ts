@@ -70,3 +70,27 @@ export function useResumoSubUnidades() {
 
   return { data, loading };
 }
+
+export function useLancamentos() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: result, error } = await supabase
+        .from('lancamentos')
+        .select('*, unidades(nome)')
+        .order('created_at', { ascending: false })
+        .limit(50);
+        
+      if (!error && result) {
+        setData(result);
+      }
+      setLoading(false);
+    }
+    
+    fetchData();
+  }, []);
+
+  return { data, loading };
+}

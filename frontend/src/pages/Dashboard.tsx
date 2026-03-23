@@ -1,5 +1,5 @@
 import { useResumoDiario, useResumoSubUnidades } from '../hooks/useMetrics';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export default function Dashboard() {
   const { data: diario, loading: loadingDiario } = useResumoDiario();
