@@ -5,7 +5,8 @@ export default function DataIngestion() {
   const [unidades, setUnidades] = useState<any[]>([]);
   const [selectedUnidade, setSelectedUnidade] = useState('');
   const [dataReferencia, setDataReferencia] = useState(new Date().toISOString().split('T')[0]);
-  const [recebimento, setRecebimento] = useState('');
+  const [recebimentoDisplay, setRecebimentoDisplay] = useState('');
+  const [recebimentoValor, setRecebimentoValor] = useState(0);
   const [loading, setLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [aiHistory, setAiHistory] = useState<any[]>([]);
@@ -61,33 +62,59 @@ export default function DataIngestion() {
     fetchHistory();
   }, []);
 
+  const handleRecebimentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, ''); 
+    if (!raw) {
+      setRecebimentoDisplay('');
+      setRecebimentoValor(0);
+      return;
+    }
+    const num = parseInt(raw, 10) / 100;
+    setRecebimentoValor(num);
+    setRecebimentoDisplay(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num));
+  };
+
   async function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (recebimentoValor <= 0) {
+      alert("Informe um valor de Recebimento de Caixa maior que zero.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const recebimentoNum = parseFloat(recebimento.replace(',', '.'));
+      // Check for exact duplicate today
+      const { data: existing } = await supabase
+        .from('lancamentos')
+        .select('id')
+        .eq('data', dataReferencia)
+        .eq('unidade_id', selectedUnidade)
+        .eq('tipo', 'recebimento')
+        .eq('origem', 'manual');
 
-      const inserts = [];
-
-      if (!isNaN(recebimentoNum) && recebimentoNum > 0) {
-        inserts.push({
-          data: dataReferencia,
-          unidade_id: selectedUnidade,
-          tipo: 'recebimento',
-          valor: recebimentoNum,
-          origem: 'manual',
-        });
+      if (existing && existing.length > 0) {
+        const confirmOverwrite = window.confirm('Já existe um lançamento manual para esta unidade nesta data. Deseja registrar um novo mesmo assim?');
+        if (!confirmOverwrite) {
+          setLoading(false);
+          return;
+        }
       }
 
-      if (inserts.length > 0) {
-        const { error } = await supabase.from('lancamentos').insert(inserts);
-        if (error) throw error;
-        alert("Recebimento lançado com sucesso!");
-        setRecebimento('');
-      } else {
-        alert("Informe um valor de Recebimento de Caixa válido.");
-      }
+      const { error } = await supabase.from('lancamentos').insert([{
+        data: dataReferencia,
+        unidade_id: selectedUnidade,
+        tipo: 'recebimento',
+        valor: recebimentoValor,
+        origem: 'manual',
+      }]);
+
+      if (error) throw error;
+      
+      alert("Recebimento lançado com sucesso!");
+      setRecebimentoDisplay('');
+      setRecebimentoValor(0);
+      fetchHistory(); // atualiza historico se for o caso
     } catch (error) {
       console.error(error);
       alert("Erro ao salvar lançamento.");
@@ -211,7 +238,7 @@ export default function DataIngestion() {
                 </div>
                 <div>
                    <label className="text-xs font-bold text-on-surface-variant uppercase">Recebimento de Caixa (R$)</label>
-                   <input type="number" step="0.01" value={recebimento} onChange={(e) => setRecebimento(e.target.value)} placeholder="0.00" className="w-full mt-1 bg-surface-container border border-outline-variant rounded p-2 text-sm text-on-surface" />
+                   <input type="text" value={recebimentoDisplay} onChange={handleRecebimentoChange} placeholder="R$ 0,00" className="w-full mt-1 bg-surface-container border border-outline-variant rounded p-2 text-sm text-on-surface font-mono" />
                 </div>
               </div>
               

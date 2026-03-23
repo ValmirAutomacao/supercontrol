@@ -18,6 +18,11 @@ export default function Dashboard() {
 
   const formatCurrency = (val: number) => `R$ ${(val/1000).toFixed(1)}k`;
 
+  // Compute actual discrepancies
+  const discrepancies = subUnidades
+    ? subUnidades.filter((s:any) => s.gap > 0).sort((a:any, b:any) => b.gap - a.gap)
+    : [];
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header Section */}
@@ -89,9 +94,11 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-primary">query_stats</span>
           </div>
           <div>
-            <div className="text-2xl font-black text-on-surface">Atenção</div>
-            <div className="text-xs text-on-surface-variant flex items-center gap-1 mt-1">
-              Itabuna precisa de atenção imediata.
+            <div className="text-xl font-black text-on-surface leading-tight mt-2">
+              {gapPercentual > 20 ? 'Atenção Necessária' : 'Operação Saudável'}
+            </div>
+            <div className={`text-xs flex items-center gap-1 mt-1 ${gapPercentual > 20 ? 'text-error' : 'text-tertiary'}`}>
+              {gapPercentual > 20 ? 'Gap da rede excedeu o limite seguro.' : 'A rede está operando dentro das metas esperadas.'}
             </div>
           </div>
         </div>
@@ -140,27 +147,32 @@ export default function Dashboard() {
             <p className="text-sm text-on-surface-variant">Ação imediata necessária</p>
           </div>
           <div className="flex-1 space-y-4">
-            <div className="p-4 bg-surface-container-high border-l-4 border-error rounded-r-lg flex items-center justify-between">
-              <div>
-                <div className="font-bold text-on-surface">Itabuna (VF Comercio)</div>
-                <div className="text-xs text-on-surface-variant">Faturamento sem recebimento</div>
+            {discrepancies.length > 0 ? (
+              discrepancies.map((disc: any, idx: number) => (
+                <div key={idx} className={`p-4 bg-surface-container-high border-l-4 ${idx === 0 ? 'border-error' : 'border-[#f59e0b]'} rounded-r-lg flex items-center justify-between`}>
+                  <div>
+                    <div className="font-bold text-on-surface">{disc.unidade_nome}</div>
+                    <div className="text-xs text-on-surface-variant">Gap em aberto no período</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`${idx === 0 ? 'text-error' : 'text-[#f59e0b]'} font-black`}>- {formatCurrency(disc.gap)}</div>
+                    <div className={`text-[10px] uppercase font-bold ${idx === 0 ? 'text-error animate-pulse' : 'text-[#f59e0b]'}`}>
+                      {idx === 0 ? 'Crítico' : 'Revisar'}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 bg-surface-container-high border-l-4 border-tertiary rounded-r-lg flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-on-surface">Parabéns</div>
+                  <div className="text-xs text-on-surface-variant">Nenhuma unidade com gap negativo</div>
+                </div>
+                <div className="text-right">
+                  <span className="material-symbols-outlined text-tertiary">check_circle</span>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-error font-black">- R$ 112k</div>
-                <div className="text-[10px] uppercase font-bold text-error animate-pulse">Critical Gap</div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-surface-container-high border-l-4 border-[#f59e0b] rounded-r-lg flex items-center justify-between">
-              <div>
-                <div className="font-bold text-on-surface">Conquista Norte</div>
-                <div className="text-xs text-on-surface-variant">Atraso recorrente</div>
-              </div>
-              <div className="text-right">
-                <div className="text-[#f59e0b] font-black">- R$ 32k</div>
-                <div className="text-[10px] uppercase font-bold text-[#f59e0b]">Reviewing</div>
-              </div>
-            </div>
+            )}
           </div>
           <button className="mt-6 w-full py-3 border border-outline-variant rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-bright transition-colors">
             Ver todas as discrepâncias
