@@ -3,7 +3,15 @@ import json
 from openai import AsyncOpenAI
 from database import supabase
 
-client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY", "placeholder"))
+base_url = os.environ.get("OPENAI_BASE_URL")
+api_key = os.environ.get("OPENAI_API_KEY", "placeholder")
+model_name = os.environ.get("OPENAI_MODEL_NAME", "gpt-4o")
+
+client_args = {"api_key": api_key}
+if base_url:
+    client_args["base_url"] = base_url
+
+client = AsyncOpenAI(**client_args)
 
 async def process_pdf_with_ai(raw_text: str, filename: str):
     """
@@ -24,7 +32,7 @@ async def process_pdf_with_ai(raw_text: str, filename: str):
     """
     
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model=model_name,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
         temperature=0.1
