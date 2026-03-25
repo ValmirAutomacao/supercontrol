@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { useResumoSubUnidades, useLancamentos } from '../hooks/useMetrics';
+import { useResumoSubUnidades } from '../hooks/useMetrics';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DatePickerInput from '../components/DatePickerInput';
 
@@ -227,27 +227,73 @@ export default function UnitDashboard() {
   const [recebimentoValor, setRecebimentoValor] = useState(0);
   const [manualLoading, setManualLoading] = useState(false);
 
-  // AI history
-  const [aiHistory, setAiHistory] = useState<any[]>([]);
+  // Lancamentos list (for the overview CRUD table)
+  const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
+  const [loadingLanc, setLoadingLanc] = useState(false);
+
+  // Edit modal state
+  const [editItem, setEditItem] = useState<any | null>(null);
+  const [editData, setEditData] = useState('');
+  const [editValorDisplay, setEditValorDisplay] = useState('');
+  const [editValor, setEditValor] = useState(0);
+  const [editTipo, setEditTipo] = useState<'faturamento'|'recebimento'>('faturamento');
+  const [editSaving, setEditSaving] = useState(false);
+
 
   const { data: subUnidadesData, loading: loadingStats } = useResumoSubUnidades();
-  const { data: lancamentos, loading: loadingLancamentos } = useLancamentos();
 
-  useEffect(() => {
-    supabase.from('unidades').select('*').eq('id', unidadeId).single().then(({ data }) => setUnidade(data));
-    fetchAiHistory();
-  }, [unidadeId]);
-
-  const fetchAiHistory = async () => {
+  const fetchLancamentos = async () => {
+    setLoadingLanc(true);
     const { data } = await supabase
       .from('lancamentos')
       .select('*')
-      .in('origem', ['pdf_import', 'extrato_bancario'])
       .eq('unidade_id', unidadeId)
-      .order('created_at', { ascending: false })
-      .limit(8);
-    if (data) setAiHistory(data);
+      .order('data', { ascending: false })
+      .limit(50);
+    if (data) setAllLancamentos(data);
+    setLoadingLanc(false);
   };
+
+  useEffect(() => {
+    supabase.from('unidades').select('*').eq('id', unidadeId).single().then(({ data }) => setUnidade(data));
+    fetchLancamentos();
+  }, [unidadeId]);
+
+  // Open edit modal
+  const openEdit = (item: any) => {
+    setEditItem(item);
+    setEditData(item.data);
+    setEditTipo(item.tipo);
+    setEditValor(item.valor);
+    setEditValorDisplay(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor));
+  };
+
+  const handleEditValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    if (!raw) { setEditValorDisplay(''); setEditValor(0); return; }
+    const num = parseInt(raw, 10) / 100;
+    setEditValor(num);
+    setEditValorDisplay(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num));
+  };
+
+  const handleEditSave = async () => {
+    if (!editItem || editValor <= 0) return;
+    setEditSaving(true);
+    const { error } = await supabase.from('lancamentos').update({
+      data: editData, valor: editValor, tipo: editTipo,
+    }).eq('id', editItem.id);
+    setEditSaving(false);
+    if (error) { alert('Erro ao salvar alterações.'); return; }
+    setEditItem(null);
+    fetchLancamentos();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Excluir este lançamento permanentemente?')) return;
+    const { error } = await supabase.from('lancamentos').delete().eq('id', id);
+    if (!error) fetchLancamentos(); else alert('Erro ao excluir.');
+  };
+
 
   // ── Faturamento PDF upload ──────────────────────────────────────────────────
   const handleFatUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,7 +308,7 @@ export default function UnitDashboard() {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/upload-pdf`, { method: 'POST', body: formData });
       if (!res.ok) throw new Error();
       setFatStatus('IA processando em background…');
-      setTimeout(() => { setFatStatus(''); setFatLoading(false); fetchAiHistory(); }, 7000);
+      setTimeout(() => { setFatStatus(''); setFatLoading(false); fetchLancamentos(); }, 7000);
     } catch { setFatStatus('Erro ao conectar com a API.'); setFatLoading(false); }
     e.target.value = '';
   };
@@ -282,7 +328,7 @@ export default function UnitDashboard() {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/upload-extrato`, { method: 'POST', body: formData });
       if (!res.ok) throw new Error();
       setExtStatus('Parser de extrato processando…');
-      setTimeout(() => { setExtStatus(''); setExtLoading(false); fetchAiHistory(); }, 7000);
+      setTimeout(() => { setExtStatus(''); setExtLoading(false); fetchLancamentos(); }, 7000);
     } catch { setExtStatus('Erro ao conectar com a API.'); setExtLoading(false); }
     e.target.value = '';
   };
@@ -314,7 +360,7 @@ export default function UnitDashboard() {
   const handleDeleteAI = async (id: string) => {
     if (!window.confirm('Remover este lançamento?')) return;
     const { error } = await supabase.from('lancamentos').delete().eq('id', id);
-    if (!error) fetchAiHistory(); else alert('Erro ao remover.');
+    if (!error) fetchLancamentos(); else alert('Erro ao remover.');
   };
 
   // ── Computed stats ──────────────────────────────────────────────────────────
@@ -324,10 +370,9 @@ export default function UnitDashboard() {
   const totalFaturamento = unitStats.reduce((s, i) => s + Number(i.faturamento), 0);
   const totalRecebimento = unitStats.reduce((s, i) => s + Number(i.recebimento), 0);
   const totalGap = unitStats.reduce((s, i) => s + Number(i.gap), 0);
-  const unitTransactions = lancamentos.filter((l: any) => l.unidade_id === unidadeId).slice(0, 10);
   const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-  if (!unidade || loadingStats || loadingLancamentos) {
+  if (!unidade || loadingStats || loadingLanc) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
@@ -341,7 +386,50 @@ export default function UnitDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-10 animate-fade-in pb-10">
 
-      {/* Header */}
+      {/* ── Edit Modal ─────────────────────────────────────────────────────── */}
+      {editItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#111] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-xl text-white">Editar Lançamento</h2>
+              <button onClick={() => setEditItem(null)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[18px] text-zinc-400">close</span>
+              </button>
+            </div>
+
+            {/* Tipo */}
+            <div className="flex gap-2">
+              {(['faturamento', 'recebimento'] as const).map(t => (
+                <button key={t} onClick={() => setEditTipo(t)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all capitalize ${editTipo === t ? (t === 'faturamento' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-emerald-600 border-emerald-600 text-white') : 'bg-transparent border-white/10 text-zinc-500 hover:border-white/20'}`}>
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            {/* Data */}
+            <DatePickerInput label="Data" value={editData} onChange={setEditData} accentColor="blue" />
+
+            {/* Valor */}
+            <div className="relative">
+              <label className="absolute left-3 -top-2 px-1 bg-[#111] text-[10px] font-bold text-emerald-500 uppercase tracking-widest z-10">Valor</label>
+              <input type="text" value={editValorDisplay} onChange={handleEditValorChange} placeholder="R$ 0,00"
+                className="w-full bg-[#0a0a0a] border border-emerald-500/30 rounded-xl p-3.5 text-lg text-emerald-400 font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono" />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setEditItem(null)} className="flex-1 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-400 hover:bg-white/5 transition-colors">
+                Cancelar
+              </button>
+              <button onClick={handleEditSave} disabled={editSaving}
+                className="flex-1 py-3 bg-white text-black rounded-xl text-sm font-bold hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                {editSaving ? <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div> : <><span className="material-symbols-outlined text-[16px]">check</span>Salvar</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -434,42 +522,75 @@ export default function UnitDashboard() {
           {/* Reconciliation Table */}
           <ReconciliationTable unidadeId={unidadeId!} />
 
-          {/* Transactions */}
+          {/* Lançamentos CRUD Table */}
           <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden">
-            <div className="p-6 border-b border-white/5">
-              <h3 className="font-bold text-xl text-white">Últimos Lançamentos</h3>
-              <p className="text-sm text-zinc-500 mt-1">Todos os registros desta unidade.</p>
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-xl text-white">Lançamentos</h3>
+                <p className="text-sm text-zinc-500 mt-1">{allLancamentos.length} registro(s) — clique em Editar para corrigir</p>
+              </div>
+              <button onClick={fetchLancamentos} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined text-[18px] text-zinc-400">refresh</span>
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-[#0f0f0f]">
-                    {['Data', 'Operação', 'Origem', 'Valor'].map(h => (
-                      <th key={h} className="px-6 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase">{h}</th>
-                    ))}
+                    <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase">Data</th>
+                    <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase">Tipo</th>
+                    <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase">Origem</th>
+                    <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Valor</th>
+                    <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {unitTransactions.length > 0 ? unitTransactions.map((tx: any, i: number) => (
-                    <tr key={i} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 font-mono text-sm text-zinc-400">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${tx.tipo === 'faturamento' ? 'bg-blue-500' : 'bg-emerald-500'}`}></div>
-                          <span className="text-sm font-bold text-zinc-200 capitalize">{tx.tipo}</span>
-                        </div>
+                  {loadingLanc ? (
+                    <tr><td colSpan={5} className="py-10 text-center text-zinc-600 text-sm">Carregando...</td></tr>
+                  ) : allLancamentos.length > 0 ? allLancamentos.map((tx: any) => (
+                    <tr key={tx.id} className="hover:bg-white/5 transition-colors group">
+                      <td className="px-5 py-4 font-mono text-sm text-zinc-400">
+                        {new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-zinc-500 uppercase tracking-wider">
-                          {tx.origem === 'pdf_import' ? 'ERP IA' : tx.origem === 'extrato_bancario' ? `Extrato ${tx.banco || ''}` : 'Manual'}
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border capitalize ${
+                          tx.tipo === 'faturamento'
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${tx.tipo === 'faturamento' ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
+                          {tx.tipo}
                         </span>
                       </td>
-                      <td className={`px-6 py-4 text-sm font-bold font-mono ${tx.tipo === 'faturamento' ? 'text-blue-400' : 'text-emerald-400'}`}>
+                      <td className="px-5 py-4">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-zinc-500 uppercase tracking-wider">
+                          {tx.origem === 'pdf_import' ? 'ERP · IA'
+                            : tx.origem === 'extrato_bancario' ? `Extrato · ${tx.banco || '—'}`
+                            : 'Manual'}
+                        </span>
+                      </td>
+                      <td className={`px-5 py-4 text-sm font-bold font-mono text-right ${
+                        tx.tipo === 'faturamento' ? 'text-blue-400' : 'text-emerald-400'
+                      }`}>
                         {fmt(tx.valor)}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => openEdit(tx)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 text-zinc-500 text-xs font-bold transition-all border border-transparent hover:border-blue-500/20">
+                            <span className="material-symbols-outlined text-[14px]">edit</span>
+                            Editar
+                          </button>
+                          <button onClick={() => handleDelete(tx.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-rose-500/10 hover:text-rose-400 text-zinc-500 text-xs font-bold transition-all border border-transparent hover:border-rose-500/20">
+                            <span className="material-symbols-outlined text-[14px]">delete</span>
+                            Excluir
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={4} className="px-6 py-10 text-center text-sm text-zinc-600 italic">Nenhum histórico para esta unidade.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-10 text-center text-sm text-zinc-600 italic">Nenhum lançamento ainda. Use a aba Lançamentos para adicionar.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -558,7 +679,7 @@ export default function UnitDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {aiHistory.length > 0 ? aiHistory.map((item, i) => (
+                  {allLancamentos.filter((x: any) => ['pdf_import','extrato_bancario'].includes(x.origem)).slice(0,8).map((item: any, i: number) => (
                     <tr key={i} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4 font-mono text-sm text-zinc-400">{new Date(item.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
                       <td className="px-6 py-4 text-sm font-bold text-white capitalize">{item.tipo}</td>
@@ -574,9 +695,7 @@ export default function UnitDashboard() {
                         </button>
                       </td>
                     </tr>
-                  )) : (
-                    <tr><td colSpan={5} className="px-6 py-10 text-center text-sm text-zinc-600">Nenhum processamento recente.</td></tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
