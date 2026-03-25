@@ -5,6 +5,17 @@ import { useResumoSubUnidades, useLancamentos } from '../hooks/useMetrics';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DatePickerInput from '../components/DatePickerInput';
 
+// ─── Bank config (display name + color) ──────────────────────────────────────
+const BANKS: { key: string; label: string; color: string }[] = [
+  { key: 'recebido_santander', label: 'Santander', color: 'text-red-400' },
+  { key: 'recebido_safra',     label: 'Safra',     color: 'text-yellow-400' },
+  { key: 'recebido_caixa',     label: 'Caixa',     color: 'text-blue-400' },
+  { key: 'recebido_sicoob',    label: 'Sicoob',    color: 'text-green-400' },
+  { key: 'recebido_bradesco',  label: 'Bradesco',  color: 'text-orange-400' },
+  { key: 'recebido_itau',      label: 'Itaú',      color: 'text-amber-400' },
+  { key: 'recebido_manual',    label: 'Manual',    color: 'text-zinc-300' },
+];
+
 // ─── Reconciliation sub-component ────────────────────────────────────────────
 function ReconciliationTable({ unidadeId }: { unidadeId: string }) {
   const [rows, setRows] = useState<any[]>([]);
@@ -16,65 +27,129 @@ function ReconciliationTable({ unidadeId }: { unidadeId: string }) {
       .select('*')
       .eq('unidade_id', unidadeId)
       .order('data', { ascending: false })
-      .limit(14)
+      .limit(30)
       .then(({ data }) => {
         if (data) setRows(data);
         setLoading(false);
       });
   }, [unidadeId]);
 
-  const fmt = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  // Only show bank columns that have at least one non-zero value
+  const visibleBanks = BANKS.filter(b => rows.some(r => Number(r[b.key]) > 0));
+
+  const fmt = (v: number) =>
+    v > 0 ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
+  const fmtFull = (v: number) =>
+    `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  const totalColSpan = 3 + visibleBanks.length + 2; // data + faturado + banks + total + gap + status
 
   return (
     <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden mt-6">
-      <div className="p-6 border-b border-white/5 flex items-center gap-3">
-        <span className="material-symbols-outlined text-indigo-500 text-[20px]">balance</span>
-        <h3 className="font-bold text-white">Conciliação Faturamento × Recebimento</h3>
+      <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-indigo-500 text-[20px]">balance</span>
+          <div>
+            <h3 className="font-bold text-white">Conciliação Bancária</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Faturamento × Recebimento por Banco</p>
+          </div>
+        </div>
+        {visibleBanks.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {visibleBanks.map(b => (
+              <span key={b.key} className={`text-[10px] font-bold px-2 py-1 rounded-full bg-white/5 border border-white/10 uppercase tracking-wider ${b.color}`}>
+                {b.label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+
       <div className="overflow-x-auto">
-        <table className="w-full text-left">
+        <table className="w-full text-left min-w-[700px]">
           <thead>
             <tr className="bg-[#0f0f0f]">
-              <th className="px-6 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase">Data</th>
-              <th className="px-6 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Faturado</th>
-              <th className="px-6 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Recebido</th>
-              <th className="px-6 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Gap</th>
-              <th className="px-6 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-center">Status</th>
+              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase sticky left-0 bg-[#0f0f0f]">Data</th>
+              <th className="px-5 py-4 text-[10px] font-black text-blue-500/80 tracking-widest uppercase text-right">Faturado</th>
+              {/* Per-bank columns */}
+              {visibleBanks.map(b => (
+                <th key={b.key} className={`px-5 py-4 text-[10px] font-black tracking-widest uppercase text-right ${b.color} opacity-70`}>
+                  {b.label}
+                </th>
+              ))}
+              <th className="px-5 py-4 text-[10px] font-black text-emerald-500/80 tracking-widest uppercase text-right border-l border-white/5">Total Rec.</th>
+              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Gap</th>
+              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-center">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {loading ? (
-              <tr><td colSpan={5} className="py-10 text-center text-zinc-600">Carregando...</td></tr>
-            ) : rows.length > 0 ? rows.map((r, i) => (
-              <tr key={i} className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 font-mono text-sm text-zinc-400">
-                  {new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR')}
-                </td>
-                <td className="px-6 py-4 text-sm font-bold text-blue-400 text-right font-mono">{fmt(r.total_faturado)}</td>
-                <td className="px-6 py-4 text-sm font-bold text-emerald-400 text-right font-mono">{fmt(r.total_recebido)}</td>
-                <td className={`px-6 py-4 text-sm font-bold text-right font-mono ${r.gap > 0 ? 'text-rose-400' : 'text-zinc-400'}`}>
-                  {r.gap > 0 ? `- ${fmt(r.gap)}` : 'R$ 0,00'}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  {r.gap > 0 ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-widest">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Gap
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> OK
-                    </span>
-                  )}
-                </td>
-              </tr>
-            )) : (
+              <tr><td colSpan={totalColSpan} className="py-10 text-center text-zinc-600 text-sm">Carregando...</td></tr>
+            ) : rows.length > 0 ? rows.map((r, i) => {
+              const gap = Number(r.gap) || 0;
+              const isOk = gap <= 0;
+              return (
+                <tr key={i} className={`transition-colors hover:bg-white/5 ${!isOk ? 'bg-rose-500/[0.02]' : ''}`}>
+                  <td className="px-5 py-4 font-mono text-sm text-zinc-400 sticky left-0 bg-transparent">
+                    {new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-5 py-4 text-sm font-bold text-blue-400 text-right font-mono">
+                    {fmtFull(r.total_faturado)}
+                  </td>
+                  {visibleBanks.map(b => (
+                    <td key={b.key} className={`px-5 py-4 text-sm text-right font-mono ${Number(r[b.key]) > 0 ? `font-bold ${b.color}` : 'text-zinc-700'}`}>
+                      {fmt(Number(r[b.key]))}
+                    </td>
+                  ))}
+                  <td className="px-5 py-4 text-sm font-bold text-emerald-400 text-right font-mono border-l border-white/5">
+                    {fmtFull(r.total_recebido)}
+                  </td>
+                  <td className={`px-5 py-4 text-sm font-bold text-right font-mono ${gap > 0 ? 'text-rose-400' : 'text-zinc-600'}`}>
+                    {gap > 0 ? `- ${fmtFull(gap)}` : '—'}
+                  </td>
+                  <td className="px-5 py-4 text-center">
+                    {isOk ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> OK
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> Gap
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            }) : (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-sm text-zinc-600 italic">
-                  Nenhum dado para conciliar ainda. Suba o Faturamento e o Extrato Bancário.
+                <td colSpan={totalColSpan} className="px-6 py-12 text-center text-sm text-zinc-600 italic">
+                  Nenhum dado para conciliar. Suba o Faturamento e os Extratos Bancários na aba Lançamentos.
                 </td>
               </tr>
             )}
           </tbody>
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="bg-[#0f0f0f] border-t border-white/10">
+                <td className="px-5 py-4 text-[11px] font-black text-zinc-400 uppercase tracking-wider sticky left-0 bg-[#0f0f0f]">Total</td>
+                <td className="px-5 py-4 text-sm font-black text-blue-300 text-right font-mono">
+                  {fmtFull(rows.reduce((s, r) => s + Number(r.total_faturado), 0))}
+                </td>
+                {visibleBanks.map(b => (
+                  <td key={b.key} className={`px-5 py-4 text-sm font-black text-right font-mono ${b.color}`}>
+                    {fmtFull(rows.reduce((s, r) => s + Number(r[b.key] || 0), 0))}
+                  </td>
+                ))}
+                <td className="px-5 py-4 text-sm font-black text-emerald-300 text-right font-mono border-l border-white/5">
+                  {fmtFull(rows.reduce((s, r) => s + Number(r.total_recebido), 0))}
+                </td>
+                <td className="px-5 py-4 text-sm font-black text-rose-300 text-right font-mono">
+                  {fmtFull(rows.reduce((s, r) => s + Number(r.gap || 0), 0))}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </div>
