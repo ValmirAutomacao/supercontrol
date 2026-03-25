@@ -8,6 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from database import supabase
 from pdf_extractor import extract_invoice_data
 from ai_agent import process_pdf_with_ai, analyze_gap_and_alert
+from extrato_parser import parse_extrato
 
 app = FastAPI(title="GF Gas Control API")
 
@@ -114,6 +115,57 @@ def process_pdf_task(pdf_content: bytes, filename: str, forced_unidade_id: str =
             
     except Exception as e:
         print(f"Erro ao processar {filename}: {e}", flush=True)
+
+@app.post("/api/upload-extrato")
+async def upload_extrato(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    unidade_id: str = Form(...),
+    data_referencia: str = Form(...),
+    banco: str = Form(None)
+):
+    """Receive a bank statement PDF and parse it into recebimento lancamentos."""
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Apenas arquivos PDF são permitidos.")
+
+    content = await file.read()
+    background_tasks.add_task(
+        process_extrato_task, content, file.filename, unidade_id, data_referencia, banco
+    )
+    return {"message": "Extrato recebido e sendo processado", "filename": file.filename}
+
+
+def process_extrato_task(
+    pdf_bytes: bytes,
+    filename: str,
+    unidade_id: str,
+    data_referencia: str,
+    banco: str = None
+):
+    """Background task: parse the bank statement and save to Supabase."""
+    print(f"[extrato] Iniciando parse de '{filename}' para unidade {unidade_id}", flush=True)
+    try:
+        result = parse_extrato(pdf_bytes, filename, banco_hint=banco)
+        total = result["total_recebido"]
+        banco_detectado = result["banco"]
+
+        if total > 0:
+            record = {
+                "data": data_referencia,
+                "unidade_id": unidade_id,
+                "tipo": "recebimento",
+                "valor": total,
+                "origem": "extrato_bancario",
+                "banco": banco_detectado,
+                "origem_detalhe": f"extrato {banco_detectado} {filename}",
+            }
+            res = supabase.table("lancamentos").insert(record).execute()
+            print(f"[extrato] '{filename}' inserido: R${total:.2f} ({banco_detectado})", flush=True)
+        else:
+            print(f"[extrato] '{filename}' sem entradas válidas após filtros.", flush=True)
+    except Exception as e:
+        print(f"[extrato] Erro ao processar '{filename}': {e}", flush=True)
+
 
 @app.post("/api/webhook/uazapi")
 async def webhook_uazapi(payload: dict):
