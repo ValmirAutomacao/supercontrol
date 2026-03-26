@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { useResumoSubUnidades } from '../hooks/useMetrics';
+import { useKpiUnidade } from '../hooks/useMetrics';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DatePickerInput from '../components/DatePickerInput';
 
@@ -14,6 +14,7 @@ const BANKS: { key: string; label: string; color: string }[] = [
   { key: 'recebido_bradesco',  label: 'Bradesco',  color: 'text-orange-400' },
   { key: 'recebido_itau',      label: 'Itaú',      color: 'text-amber-400' },
   { key: 'recebido_manual',    label: 'Manual',    color: 'text-zinc-300' },
+  { key: 'recebido_outros',    label: 'Cartões / IA', color: 'text-indigo-300' },
 ];
 
 // ─── Reconciliation sub-component ────────────────────────────────────────────
@@ -26,10 +27,25 @@ function ReconciliationTable({ unidadeId }: { unidadeId: string }) {
       .from('vw_conciliacao')
       .select('*')
       .eq('unidade_id', unidadeId)
-      .order('data', { ascending: false })
-      .limit(30)
+      .order('data', { ascending: true }) // Oldest first for accumulation
+      .limit(60)
       .then(({ data }) => {
-        if (data) setRows(data);
+        if (data) {
+          // Process accumulation
+          let accFat = 0;
+          let accRec = 0;
+          const processed = data.map(r => {
+            accFat += Number(r.total_faturado || 0);
+            accRec += Number(r.total_recebido || 0);
+            return {
+              ...r,
+              acc_fat: accFat,
+              acc_rec: accRec,
+              acc_gap: accRec - accFat, // Matching Excel: Result = Rec - Fat (Positive = Surplus)
+            };
+          });
+          setRows(processed);
+        }
         setLoading(false);
       });
   }, [unidadeId]);
@@ -38,11 +54,11 @@ function ReconciliationTable({ unidadeId }: { unidadeId: string }) {
   const visibleBanks = BANKS.filter(b => rows.some(r => Number(r[b.key]) > 0));
 
   const fmt = (v: number) =>
-    v > 0 ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
+    v !== 0 ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
+  
   const fmtFull = (v: number) =>
     `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  const totalColSpan = 3 + visibleBanks.length + 2; // data + faturado + banks + total + gap + status
 
   return (
     <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden mt-6">
@@ -51,102 +67,107 @@ function ReconciliationTable({ unidadeId }: { unidadeId: string }) {
           <span className="material-symbols-outlined text-indigo-500 text-[20px]">balance</span>
           <div>
             <h3 className="font-bold text-white">Conciliação Bancária</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">Faturamento × Recebimento por Banco</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Visão detalhada e acumulada (Baseado em Águia.xlsx)</p>
           </div>
         </div>
-        {visibleBanks.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {visibleBanks.map(b => (
-              <span key={b.key} className={`text-[10px] font-bold px-2 py-1 rounded-full bg-white/5 border border-white/10 uppercase tracking-wider ${b.color}`}>
-                {b.label}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left min-w-[700px]">
+        <table className="w-full text-left min-w-[1000px] border-collapse">
           <thead>
+            {/* Super Headers */}
+            <tr className="bg-[#080808] border-b border-white/5">
+              <th className="px-5 py-2"></th>
+              <th colSpan={2} className="px-5 py-2 text-[9px] font-black text-blue-400 text-center uppercase tracking-widest border-x border-white/5 bg-blue-500/5">Faturamentos (ERP)</th>
+              <th colSpan={visibleBanks.length + 2} className="px-5 py-2 text-[9px] font-black text-emerald-400 text-center uppercase tracking-widest border-x border-white/5 bg-emerald-500/5">Recebimentos (Bancos)</th>
+              <th className="px-5 py-2 text-[9px] font-black text-rose-400 text-center uppercase tracking-widest bg-rose-500/5">Resultado</th>
+            </tr>
             <tr className="bg-[#0f0f0f]">
-              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase sticky left-0 bg-[#0f0f0f]">Data</th>
-              <th className="px-5 py-4 text-[10px] font-black text-blue-500/80 tracking-widest uppercase text-right">Faturado</th>
-              {/* Per-bank columns */}
+              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase sticky left-0 bg-[#0f0f0f] z-10 border-b border-white/5">Data</th>
+              
+              <th className="px-5 py-4 text-[10px] font-black text-blue-500/80 tracking-widest uppercase text-right border-l border-white/5 border-b border-white/5">Dia</th>
+              <th className="px-5 py-4 text-[10px] font-black text-blue-500/60 tracking-widest uppercase text-right border-b border-white/5">Acumulado</th>
+              
               {visibleBanks.map(b => (
-                <th key={b.key} className={`px-5 py-4 text-[10px] font-black tracking-widest uppercase text-right ${b.color} opacity-70`}>
+                <th key={b.key} className={`px-5 py-4 text-[10px] font-black tracking-widest uppercase text-right ${b.color} opacity-70 border-b border-white/5 border-l border-white/5`}>
                   {b.label}
                 </th>
               ))}
-              <th className="px-5 py-4 text-[10px] font-black text-emerald-500/80 tracking-widest uppercase text-right border-l border-white/5">Total Rec.</th>
-              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right">Gap</th>
-              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-center">Status</th>
+              
+              <th className="px-5 py-4 text-[10px] font-black text-emerald-500/80 tracking-widest uppercase text-right border-l border-white/5 border-b border-white/5">Dia</th>
+              <th className="px-5 py-4 text-[10px] font-black text-emerald-500/60 tracking-widest uppercase text-right border-b border-white/5">Acumulado</th>
+              
+              <th className="px-5 py-4 text-[10px] font-black text-zinc-500 tracking-widest uppercase text-right border-l border-white/5 border-b border-white/5">Gap Acum.</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {loading ? (
-              <tr><td colSpan={totalColSpan} className="py-10 text-center text-zinc-600 text-sm">Carregando...</td></tr>
-            ) : rows.length > 0 ? rows.map((r, i) => {
-              const gap = Number(r.gap) || 0;
-              const isOk = gap <= 0;
+              <tr><td colSpan={15} className="py-20 text-center text-zinc-600 text-sm">Engine carregando dados históricos...</td></tr>
+            ) : rows.length > 0 ? [...rows].reverse().map((r) => {
+              // We reverse for display (newest on top) but keep the accumulation logic from oldest
+              const gapAcc = Number(r.acc_gap) || 0;
+              const isOk = gapAcc >= 0;
               return (
-                <tr key={i} className={`transition-colors hover:bg-white/5 ${!isOk ? 'bg-rose-500/[0.02]' : ''}`}>
+                <tr key={r.data} className={`transition-colors hover:bg-white/5 ${!isOk ? 'bg-rose-500/[0.03]' : ''}`}>
                   <td className="px-5 py-4 font-mono text-sm text-zinc-400 sticky left-0 bg-transparent">
                     {new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR')}
                   </td>
-                  <td className="px-5 py-4 text-sm font-bold text-blue-400 text-right font-mono">
+                  
+                  <td className="px-5 py-4 text-sm font-bold text-blue-400 text-right font-mono border-l border-white/5 italic opacity-80">
                     {fmtFull(r.total_faturado)}
                   </td>
+                  <td className="px-5 py-4 text-sm font-bold text-blue-300 text-right font-mono">
+                    {fmtFull(r.acc_fat)}
+                  </td>
+                  
                   {visibleBanks.map(b => (
-                    <td key={b.key} className={`px-5 py-4 text-sm text-right font-mono ${Number(r[b.key]) > 0 ? `font-bold ${b.color}` : 'text-zinc-700'}`}>
+                    <td key={b.key} className={`px-5 py-4 text-sm text-right font-mono border-l border-white/5 ${Number(r[b.key]) > 0 ? `font-bold ${b.color}` : 'text-zinc-700'}`}>
                       {fmt(Number(r[b.key]))}
                     </td>
                   ))}
-                  <td className="px-5 py-4 text-sm font-bold text-emerald-400 text-right font-mono border-l border-white/5">
+                  
+                  <td className="px-5 py-4 text-sm font-bold text-emerald-400 text-right font-mono border-l border-white/5 italic opacity-80">
                     {fmtFull(r.total_recebido)}
                   </td>
-                  <td className={`px-5 py-4 text-sm font-bold text-right font-mono ${gap > 0 ? 'text-rose-400' : 'text-zinc-600'}`}>
-                    {gap > 0 ? `- ${fmtFull(gap)}` : '—'}
+                  <td className="px-5 py-4 text-sm font-bold text-emerald-300 text-right font-mono">
+                    {fmtFull(r.acc_rec)}
                   </td>
-                  <td className="px-5 py-4 text-center">
-                    {isOk ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> OK
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-widest">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> Gap
-                      </span>
-                    )}
+                  
+                  <td className={`px-5 py-4 text-sm font-black text-right font-mono border-l border-white/5 ${gapAcc < 0 ? 'text-rose-400' : 'text-emerald-500'}`}>
+                    {gapAcc !== 0 ? `${gapAcc > 0 ? '+' : ''}${fmtFull(gapAcc)}` : 'R$ 0,00'}
                   </td>
                 </tr>
               );
             }) : (
               <tr>
-                <td colSpan={totalColSpan} className="px-6 py-12 text-center text-sm text-zinc-600 italic">
-                  Nenhum dado para conciliar. Suba o Faturamento e os Extratos Bancários na aba Lançamentos.
+                <td colSpan={15} className="px-6 py-12 text-center text-sm text-zinc-600 italic">
+                  Nenhum dado para conciliar. Suba o Faturamento e os Extratos Bancários para gerar o acumulado.
                 </td>
               </tr>
             )}
           </tbody>
           {rows.length > 0 && (
             <tfoot>
-              <tr className="bg-[#0f0f0f] border-t border-white/10">
-                <td className="px-5 py-4 text-[11px] font-black text-zinc-400 uppercase tracking-wider sticky left-0 bg-[#0f0f0f]">Total</td>
-                <td className="px-5 py-4 text-sm font-black text-blue-300 text-right font-mono">
+              <tr className="bg-[#0f0f0f] border-t-2 border-white/10">
+                <td className="px-5 py-5 text-[11px] font-black text-zinc-400 uppercase tracking-wider sticky left-0 bg-[#0f0f0f]">Total No Período</td>
+                
+                <td colSpan={2} className="px-5 py-5 text-sm font-black text-blue-300 text-right font-mono">
                   {fmtFull(rows.reduce((s, r) => s + Number(r.total_faturado), 0))}
                 </td>
+                
                 {visibleBanks.map(b => (
-                  <td key={b.key} className={`px-5 py-4 text-sm font-black text-right font-mono ${b.color}`}>
+                  <td key={b.key} className={`px-5 py-5 text-sm font-black text-right font-mono border-l border-white/5 ${b.color}`}>
                     {fmtFull(rows.reduce((s, r) => s + Number(r[b.key] || 0), 0))}
                   </td>
                 ))}
-                <td className="px-5 py-4 text-sm font-black text-emerald-300 text-right font-mono border-l border-white/5">
+                
+                <td colSpan={2} className="px-5 py-5 text-sm font-black text-emerald-300 text-right font-mono border-l border-white/5">
                   {fmtFull(rows.reduce((s, r) => s + Number(r.total_recebido), 0))}
                 </td>
-                <td className="px-5 py-4 text-sm font-black text-rose-300 text-right font-mono">
-                  {fmtFull(rows.reduce((s, r) => s + Number(r.gap || 0), 0))}
+                
+                <td className={`px-5 py-5 text-md font-black text-right font-mono border-l border-white/5 ${rows[rows.length-1].acc_gap < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {fmtFull(rows[rows.length-1].acc_gap)}
                 </td>
-                <td></td>
               </tr>
             </tfoot>
           )}
@@ -240,7 +261,19 @@ export default function UnitDashboard() {
   const [editSaving, setEditSaving] = useState(false);
 
 
-  const { data: subUnidadesData, loading: loadingStats } = useResumoSubUnidades();
+  const { fat: totalFaturamento, rec: totalRecebimento, gap: totalGap } = useKpiUnidade(unidadeId);
+
+  const unitStats = allLancamentos.reduce((acc: any[], curr: any) => {
+    if (curr.tipo !== 'faturamento') return acc;
+    const subName = curr.sub_unidade_nome || 'Geral';
+    const existing = acc.find(a => a.sub_unidade_nome === subName);
+    if (existing) {
+      existing.faturamento += Number(curr.valor);
+    } else {
+      acc.push({ sub_unidade_nome: subName, faturamento: Number(curr.valor) });
+    }
+    return acc;
+  }, []);
 
   const fetchLancamentos = async () => {
     setLoadingLanc(true);
@@ -363,16 +396,9 @@ export default function UnitDashboard() {
     if (!error) fetchLancamentos(); else alert('Erro ao remover.');
   };
 
-  // ── Computed stats ──────────────────────────────────────────────────────────
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
-  const searchKey = normalize(unidade?.nome || '');
-  const unitStats = subUnidadesData.filter(d => normalize(d.unidade_nome).includes(searchKey));
-  const totalFaturamento = unitStats.reduce((s, i) => s + Number(i.faturamento), 0);
-  const totalRecebimento = unitStats.reduce((s, i) => s + Number(i.recebimento), 0);
-  const totalGap = unitStats.reduce((s, i) => s + Number(i.gap), 0);
   const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-  if (!unidade || loadingStats || loadingLanc) {
+  if (!unidade || loadingLanc) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
